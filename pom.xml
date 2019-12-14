@@ -17,8 +17,8 @@
     </parent>
 
     <modules>
-        <module>cloudcmr-back</module>
         <module>cloudcmr-front</module>
+        <module>cloudcmr-back</module>
     </modules>
 
 
