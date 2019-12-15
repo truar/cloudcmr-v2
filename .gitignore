@@ -1,7 +1,11 @@
 .DS_Store
-node_modules
+node_modules/
+node/
 dist/
 target/
+
+# This directory is built by maven install lifecycle. No need to store those files in git
+/cloudcmr-back/src/main/resources/public/
 
 /tests/e2e/videos/
 /tests/e2e/screenshots/
