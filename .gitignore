@@ -4,9 +4,10 @@ node/
 dist/
 target/
 
-# This directory is built by maven install lifecycle. No need to store those files in git
+# This folder is built by maven install lifecycle. No need to store those files in git
 /cloudcmr-back/src/main/resources/public/
 
+# This folders are built by cypress, no need to track them
 /cloudcmr-front/tests/e2e/videos/
 /cloudcmr-front/tests/e2e/screenshots/
 

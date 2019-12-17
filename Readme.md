@@ -31,6 +31,35 @@ Your webserver will be reloaded everytime you change your js files, and improvin
 ```
 npm run serve
 ```
+## Execute the tests
+### Backend test
+```
+./mvnw clean test
+```
+### Frontend unit test
+Mocha and Chai are used for unit tests
+```
+cd cloudcmr-front
+npm run test:unit
+```
+### End to end test
+Cypress is used for end to end tests
+```
+./mvnw --project cloudcmr-back spring-boot:start
+cd cloudcmr-front
+npm run test:e2e
+cd ..
+./mvnw --project cloudcmr-back spring-boot:stop
+```
+
+# Continuous Integration
+Travis is used as a Continuous integration system. Basically :
+* Building the project
+* Starting the server
+* Launching the tests
+* Stopping and cleaning
+
+Check travis.yml for more infos
 
 ### Credit
 A big thank you to https://github.com/jonashackt/spring-boot-vuejs, very easy to setup a skeleton project with Spring-boot 2 and VueJS 3.
