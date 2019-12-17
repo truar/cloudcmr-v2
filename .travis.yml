@@ -2,11 +2,15 @@ language: java
 jdk:
   - openjdk11
 
+install: ./mvnw clean install
+
+before_script: ./mvnw --projects cloudcmr-back spring-boot:start
+
 script:
-  - mvn clean test
-  - npm run test:unit
-  - mvn --projects cloudcmr-back spring-boot:run
-  - npm run test:e2e
+  - cd cloudcmr-front && npm run test:unit
+  - cd cloudcmr-front && npm run test:e2e
+
+after_script: ./mvnw --projects cloudcmr-back spring-boot:stop
 
 cache:
   directories:
