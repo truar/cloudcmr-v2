@@ -4,13 +4,17 @@ jdk:
 
 install: ./mvnw clean install
 
-before_script: ./mvnw --projects cloudcmr-back spring-boot:start
+before_script:
+  - ./mvnw --projects cloudcmr-back spring-boot:start
+  - cd cloudcmr-front
 
 script:
-  - cd cloudcmr-front && npm run test:unit
-  - cd cloudcmr-front && npm run test:e2e
+  - npm run test:unit
+  - npm run test:e2e
 
-after_script: ./mvnw --projects cloudcmr-back spring-boot:stop
+after_script:
+  - cd ..
+  - ./mvnw --projects cloudcmr-back spring-boot:stop
 
 cache:
   directories:
