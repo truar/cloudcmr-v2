@@ -4,7 +4,9 @@ jdk:
 
 script:
   - mvn clean test
-  - $(npm bin)/cypress run --record
+  - npm run test:unit
+  - mvn --projects cloudcmr-back spring-boot:run
+  - npm run test:e2e
 
 cache:
   directories:
