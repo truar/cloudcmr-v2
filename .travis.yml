@@ -2,7 +2,9 @@ language: java
 jdk:
   - openjdk11
 
-script: mvn clean install
+script:
+  - mvn clean test
+  - $(npm bin)/cypress run --record
 
 cache:
   directories:
