@@ -1,7 +1,5 @@
-export function goToHomePage() {
-    cy.visit("/")
-}
-
-export default class HomePage {
-
+export class HomePage {
+    goTo() {
+        cy.visit("/");
+    }
 }

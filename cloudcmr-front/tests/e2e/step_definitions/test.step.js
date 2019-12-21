@@ -1,8 +1,9 @@
 import { When, Then } from 'cypress-cucumber-preprocessor/steps';
-import { goToHomePage } from './pages/home.page';
+import { HomePage } from './pages/home.page';
 
 When(/^I open the Home page$/, () => {
-    goToHomePage()
+    let homePage = new HomePage();
+    homePage.goTo();
 });
 
 Then(/^I see "([^"]*)" in the main heading$/, msg => {
