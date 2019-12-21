@@ -28,8 +28,13 @@
     "babel-eslint": "^10.0.3",
     "chai": "^4.1.2",
     "cypress": "^3.8.0",
+    "cypress-cucumber-preprocessor": "^1.19.0",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
     "vue-template-compiler": "^2.6.10"
+  },
+  "cypress-cucumber-preprocessor": {
+    "nonGlobalStepDefinitions": false,
+    "step_definitions": "tests/e2e/step_definitions/"
   }
 }
