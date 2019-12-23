@@ -1,10 +1,5 @@
 import { when, then } from 'cypress-cucumber-preprocessor/steps';
-import HomePage from '../../pages/home.page'
-
-// it('Test', () => {
-//   HomePage.goTo
-//   cy.contains('h1', 'Welcome to Your Vue.js App')
-// })
+import HomePage from './pages/home.page';
 
 when(/^I open the Home page$/, () => {
     HomePage.goTo();

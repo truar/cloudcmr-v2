@@ -1,6 +1,6 @@
 class HomePage {
   static goTo () {
-    cy.visit('http://localhost:8088')
+    cy.visit('/')
   }
 }
 
