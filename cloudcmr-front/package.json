@@ -7,8 +7,8 @@
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e --headless --url=http://localhost:8080/",
-    "test": "vue-cli-service test:e2e --headless --url=http://localhost:8088/",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test": "vue-cli-service test:e2e --headless --url=http://localhost:8088/"
   },
   "dependencies": {
     "core-js": "^3.4.3",
@@ -21,7 +21,7 @@
     "@vue/cli-plugin-e2e-cypress": "^4.1.0",
     "@vue/cli-plugin-eslint": "^4.1.0",
     "@vue/cli-plugin-router": "^4.1.0",
-    "@vue/cli-plugin-unit-jest": "^4.1.0",
+    "@vue/cli-plugin-unit-jest": "^4.1.1",
     "@vue/cli-plugin-vuex": "^4.1.0",
     "@vue/cli-service": "^4.1.0",
     "@vue/eslint-config-standard": "^4.0.0",
