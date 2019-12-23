@@ -47,6 +47,7 @@ Cypress is used for end to end tests
 ```
 ./mvnw --project cloudcmr-back spring-boot:start
 cd cloudcmr-front
+npm run serve
 npm run test:e2e
 cd ..
 ./mvnw --project cloudcmr-back spring-boot:stop
