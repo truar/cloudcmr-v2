@@ -1,4 +1,4 @@
-package cloud.cmr.com.cloudcmr;
+package com.cloud.cmr;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -34,7 +34,6 @@
     "vue-template-compiler": "^2.6.10"
   },
   "cypress-cucumber-preprocessor": {
-    "nonGlobalStepDefinitions": false,
-    "step_definitions": "tests/e2e/step_definitions/"
+    "nonGlobalStepDefinitions": true
   }
 }
