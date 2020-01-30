@@ -1,6 +1,5 @@
 package com.cloud.cmr.security;
 
-import com.cloud.cmr.authentication.web.AuthenticationController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthenticationController.class)
+@WebMvcTest
 public class WebAccessTest {
 
     @Autowired
@@ -42,7 +41,6 @@ public class WebAccessTest {
 
         assertIsNotForbidden(result);
     }
-
 
     private void assertIsNotForbidden(MvcResult result) {
         assertThat(result.getResponse().getStatus()).isNotEqualTo(HttpStatus.FORBIDDEN.value());
