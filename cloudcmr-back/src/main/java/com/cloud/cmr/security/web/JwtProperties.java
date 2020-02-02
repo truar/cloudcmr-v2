@@ -1,4 +1,4 @@
-package com.cloud.cmr.security.jwt;
+package com.cloud.cmr.security.web;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

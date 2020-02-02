@@ -1,7 +1,8 @@
-package com.cloud.cmr.security;
+package com.cloud.cmr.security.config;
 
-import com.cloud.cmr.security.jwt.JwtAuthenticationFilter;
-import com.cloud.cmr.security.jwt.JwtProperties;
+import com.cloud.cmr.security.web.JwtAuthenticationFilter;
+import com.cloud.cmr.security.web.JwtProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -16,30 +17,34 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
     private JwtProperties jwtProperties;
+    private ObjectMapper mapper;
+
+    public SecurityConfiguration(JwtProperties jwtProperties, ObjectMapper mapper) {
+        super();
+        this.jwtProperties = jwtProperties;
+        this.mapper = mapper;
+    }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         auth.inMemoryAuthentication()
-                .withUser("tibo").password(passwordEncoder.encode("tibo")).roles("USER");
+                .withUser("user").password(passwordEncoder.encode("user")).roles("USER");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
-                .addFilter(jwtAuthenticationFilter(jwtProperties))
+                .addFilter(jwtAuthenticationFilter())
                 .authorizeRequests()
-//                .mvcMatchers("/board/**").hasAnyRole("MEMBER", "BOARD")
-//                .mvcMatchers("/members/**").hasRole("MEMBER")
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtProperties jwtProperties) throws Exception {
-        return new JwtAuthenticationFilter(authenticationManager(), jwtProperties);
+    public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
+        return new JwtAuthenticationFilter(authenticationManager(), jwtProperties, mapper);
     }
 }

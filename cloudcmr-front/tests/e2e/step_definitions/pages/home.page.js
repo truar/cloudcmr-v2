@@ -9,6 +9,6 @@ export default class HomePage {
     }
 
     static assertUserInformationAreDisplayedInHeader(username) {
-        cy.get('header').contains(username)
+        cy.get('.home').contains(username)
     }
 }

@@ -11,6 +11,7 @@
     "test": "vue-cli-service test:e2e --headless --url=http://localhost:8088/"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "core-js": "^3.4.3",
     "vue": "^2.6.10",
     "vue-router": "^3.1.3",
