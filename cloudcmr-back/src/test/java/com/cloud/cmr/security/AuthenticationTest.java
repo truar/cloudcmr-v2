@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 public class AuthenticationTest {
 
-    public static final String LOGIN = "/login";
+    public static final String LOGIN = "/api/login";
 
     @Autowired
     private MockMvc mockMvc;

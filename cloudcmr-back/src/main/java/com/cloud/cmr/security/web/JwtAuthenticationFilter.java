@@ -8,7 +8,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,12 +21,14 @@ import java.util.Date;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private static final String API_LOGIN = "/api/login";
     private final JwtProperties jwtProperties;
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtProperties jwtProperties, ObjectMapper mapper) {
         this.jwtProperties = jwtProperties;
         this.mapper = mapper;
+        this.setFilterProcessesUrl(API_LOGIN);
         this.setAuthenticationManager(authenticationManager);
     }
 
@@ -43,11 +44,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .setSubject(user.getUsername())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getTokenDuration()))
                 .compact();
-        response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-//        chain.doFilter(request, response);
         sendPrincipalInformation(response, user, token);
     }
 

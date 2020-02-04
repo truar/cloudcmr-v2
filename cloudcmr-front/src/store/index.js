@@ -16,7 +16,7 @@ export default new Vuex.Store({
     actions: {
         async login ({ commit }, userCredentials) {
             let { username, password } = userCredentials
-            let response = await axios.post(`/api/login?username=${username}&password=${password}`)
+            let response = await axios.post(`/api/login?username=${username}&password=${password}`, {}, { withCredentials: true })
             axios.defaults.headers.common['Authorization'] = response.headers.authorization
             localStorage.setItem('principal', JSON.stringify(response.data))
             commit('loginSuccess', response.data)
