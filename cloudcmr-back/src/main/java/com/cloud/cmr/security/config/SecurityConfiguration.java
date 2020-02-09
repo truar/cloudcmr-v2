@@ -48,6 +48,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and().csrf().disable()
                 .addFilter(jwtAuthenticationFilter())
                 .authorizeRequests()
+                .mvcMatchers("/api/login").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement()
