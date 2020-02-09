@@ -1,14 +1,23 @@
 <template>
-    <form @submit.prevent="login" name="login">
-        <label for="username">Utilisateur :</label><input v-model="username" name="username" id="username" value="" />
-        <label for="password">Mot de passe : </label><input v-model="password" name="password" id="password" value="" />
-        <button type="submit" id="login-form">Se connecter</button>
-    </form>
+    <div id="login">
+        <form @submit.prevent="login" name="form-login">
+            <FormInput v-model="username" name="username" id="username" placeholder="Nom d'utilisateur" />
+            <FormInput v-model="password" name="password"  id="password" placeholder="Mot de passe" />
+            <FormButton id="login-form">Se connecter</FormButton>
+        </form>
+    </div>
 </template>
 
 <script>
+import FormInput from '@/components/FormInput.vue'
+import FormButton from '@/components/FormButton.vue'
+
 export default {
     name: 'login',
+    components: {
+        FormInput,
+        FormButton
+    },
     data () {
         return {
             username: '',
@@ -21,7 +30,7 @@ export default {
             let password = this.password
             this.$store.dispatch('login', { username, password })
                 .then(() => this.$router.push('/'))
-                .catch(err => err)
+                .catch(err => alert(err))
         }
     }
 }
