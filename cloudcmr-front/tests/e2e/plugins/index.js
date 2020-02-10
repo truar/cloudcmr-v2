@@ -10,18 +10,18 @@
 const cucumber = require('cypress-cucumber-preprocessor').default
 
 module.exports = (on, config) => {
-  // on('file:preprocessor', webpack({
-  //  webpackOptions: require('@vue/cli-service/webpack.config'),
-  //  watchOptions: {}
-  // }))
-  on('file:preprocessor', cucumber())
+    // on('file:preprocessor', webpack({
+    //  webpackOptions: require('@vue/cli-service/webpack.config'),
+    //  watchOptions: {}
+    // }))
+    on('file:preprocessor', cucumber())
 
-  return Object.assign({}, config, {
-    fixturesFolder: 'tests/e2e/fixtures',
-    integrationFolder: 'tests/e2e/features',
-    screenshotsFolder: 'tests/e2e/screenshots',
-    videosFolder: 'tests/e2e/videos',
-    supportFile: 'tests/e2e/support/index.js',
-    ignoreTestFiles: '*.js'
-  })
+    return Object.assign({}, config, {
+        fixturesFolder: 'tests/e2e/fixtures',
+        integrationFolder: 'tests/e2e/features',
+        screenshotsFolder: 'tests/e2e/screenshots',
+        videosFolder: 'tests/e2e/videos',
+        supportFile: 'tests/e2e/support/index.js',
+        ignoreTestFiles: '*.js'
+    })
 }
