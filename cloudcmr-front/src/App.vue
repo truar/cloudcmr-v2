@@ -1,7 +1,8 @@
 <template>
-  <v-app>
+  <v-app id="inspire">
     <v-content>
         <Header />
+        <SideMenu />
         <router-view />
     </v-content>
   </v-app>
@@ -15,8 +16,8 @@ export default {
     components: {
         Header
     },
-    data: () => ({
-    //
-    })
+    created () {
+        this.$vuetify.theme.dark = true
+    }
 }
 </script>
