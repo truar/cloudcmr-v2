@@ -12,6 +12,10 @@
     <name>Cloudcmr Backend</name>
     <description>Backend for cloudCmr project</description>
 
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

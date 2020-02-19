@@ -55,18 +55,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
-//    @Bean
-////    public CorsConfigurationSource corsConfigurationSource() {
-////        CorsConfiguration configuration = new CorsConfiguration();
-////        configuration.setAllowedOrigins(singletonList("http://localhost:8088"));
-////        configuration.setAllowedMethods(asList(GET.name(), POST.name()));
-////        configuration.setAllowedHeaders(singletonList("content-type"));
-////        configuration.setAllowCredentials(true);
-////        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-////        source.registerCorsConfiguration("/**", configuration);
-////        return source;
-////    }
-
     @Bean
     public CommonsRequestLoggingFilter logFilter() {
         CommonsRequestLoggingFilter filter
