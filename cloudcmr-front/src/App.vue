@@ -1,20 +1,19 @@
 <template>
   <v-app id="inspire">
     <v-content>
-        <Header />
-        <SideMenu />
+        <common-header />
         <router-view />
     </v-content>
   </v-app>
 </template>
 
 <script>
-import Header from '@/components/header/Header'
+import CommonHeader from '@/components/header/CommonHeader'
 
 export default {
     name: 'App',
     components: {
-        Header
+        CommonHeader
     },
     created () {
         this.$vuetify.theme.dark = true
