@@ -4,10 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CloudcmrApplication {
+public class CloudCmrApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CloudcmrApplication.class, args);
+		SpringApplication.run(CloudCmrApplication.class, args);
 	}
-
 }

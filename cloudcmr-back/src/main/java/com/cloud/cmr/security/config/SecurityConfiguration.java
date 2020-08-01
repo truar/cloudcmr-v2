@@ -1,5 +1,6 @@
 package com.cloud.cmr.security.config;
 
+import com.cloud.cmr.security.web.FirebaseAuthenticationTokenFilter;
 import com.cloud.cmr.security.web.JwtAuthenticationFilter;
 import com.cloud.cmr.security.web.JwtProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 @EnableWebSecurity
@@ -46,9 +48,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors()
                 .and().csrf().disable()
-                .addFilter(jwtAuthenticationFilter())
+                .addFilterBefore(firebaseAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .mvcMatchers("/api/login").permitAll()
+                .mvcMatchers("/api/login", "/actuator/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement()
@@ -69,5 +71,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
         return new JwtAuthenticationFilter(authenticationManager(), jwtProperties, mapper);
+    }
+
+    public FirebaseAuthenticationTokenFilter firebaseAuthenticationTokenFilter() throws Exception {
+        return new FirebaseAuthenticationTokenFilter();
     }
 }

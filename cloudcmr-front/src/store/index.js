@@ -1,30 +1,30 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from 'axios'
+import { userService } from '../services/user.service'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        principal: null
+        principal: userService.getPrincipal(),
+        token: userService.getToken()
     },
     mutations: {
-        loginSuccess (state, principal) {
+        loginSuccess(state, principal, token) {
             state.principal = principal
+            state.token = token
         }
     },
     actions: {
-        async login ({ commit }, userCredentials) {
-            let { username, password } = userCredentials
-            let response = await axios.post(`/api/login?username=${username}&password=${password}`)
-            axios.defaults.headers.common['Authorization'] = response.headers.authorization
-            localStorage.setItem('principal', JSON.stringify(response.data))
-            commit('loginSuccess', response.data)
+        async login({ commit }, userCredentials) {
+            let { email, password } = userCredentials
+            let { user, token } = await userService.login(email, password)
+            commit('loginSuccess', user, token)
         }
     },
-    modules: {
-    },
+    modules: {},
     getters: {
-        isLoggedIn: state => !!state.principal
+        isLoggedIn: state => !!state.principal,
+        getPrincipalName: state => state.principal?.email
     }
 })
