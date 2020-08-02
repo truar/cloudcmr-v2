@@ -1,8 +1,9 @@
-package com.cloud.cmr.security.web;
+package com.cloud.cmr.security.authentication;
 
 import com.google.firebase.auth.FirebaseAuth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,14 +23,13 @@ import java.util.ArrayList;
 public class FirebaseAuthenticationTokenFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(FirebaseAuthenticationTokenFilter.class);
-    private final static String TOKEN_HEADER = "Authorization";
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpRequest, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         logger.debug("doFilter:: authenticating...");
 
-        String authToken = httpRequest.getHeader(TOKEN_HEADER);
+        String authToken = httpRequest.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authToken == null || authToken.isEmpty()) {
             filterChain.doFilter(httpRequest, response);
@@ -49,7 +49,6 @@ public class FirebaseAuthenticationTokenFilter extends OncePerRequestFilter {
     }
 
     /**
-     *
      * @param authToken Firebase access token string
      * @return the computed result
      * @throws Exception

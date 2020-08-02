@@ -10,22 +10,17 @@ export const userService = {
 }
 
 async function login(username, password) {
-    try {
-        await firebase
-            .auth()
-            .signInWithEmailAndPassword(username, password)
-        let user = firebase.auth().currentUser
-        let token = await user.getIdToken()
+    await firebase
+        .auth()
+        .signInWithEmailAndPassword(username, password)
+    let user = firebase.auth().currentUser
+    let token = await user.getIdToken()
 
-        axios.defaults.headers.common['Authorization'] = token
+    axios.defaults.headers.common['Authorization'] = token
 
-        localStorage.setItem('user', JSON.stringify(user))
-        localStorage.setItem('token', JSON.stringify(token))
-        return { user, token }
-    } catch (err) {
-        console.error(err)
-        throw err
-    }
+    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('token', JSON.stringify(token))
+    return { user, token }
 }
 
 function logout() {

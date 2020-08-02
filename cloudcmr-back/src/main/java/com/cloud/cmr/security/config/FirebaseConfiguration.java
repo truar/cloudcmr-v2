@@ -14,37 +14,35 @@ import java.io.IOException;
 
 @Configuration
 @EnableConfigurationProperties
-@ConfigurationProperties(prefix="firebase")
+@ConfigurationProperties(prefix = "firebase")
 public class FirebaseConfiguration {
-
     private static final Logger logger = LoggerFactory.getLogger(FirebaseConfiguration.class);
 
-    private String databaseURL;
-    private String serviceAccount;
+    private String projectId;
 
     @PostConstruct
     public void init() throws IOException {
-        FirebaseOptions options = new FirebaseOptions.Builder()
-                .setProjectId("truaro-test-gcp")
-                .setCredentials(GoogleCredentials.getApplicationDefault())
-                .build();
+        try {
+            // This happens only when hot-restarting the application, with Spring-devtool
+            FirebaseApp.getInstance();
+            logger.debug("Using Firebase already configured instance");
+        } catch (IllegalStateException e) {
+            FirebaseOptions options = new FirebaseOptions.Builder()
+                    .setProjectId(projectId)
+                    .setCredentials(GoogleCredentials.getApplicationDefault())
+                    .build();
 
-        FirebaseApp.initializeApp(options);
+            FirebaseApp.initializeApp(options);
+            logger.debug("Creating new Firebase instance");
+        }
+
     }
 
-    public String getDatabaseURL() {
-        return databaseURL;
+    public String getProjectId() {
+        return projectId;
     }
 
-    public void setDatabaseURL(String databaseURL) {
-        this.databaseURL = databaseURL;
-    }
-
-    public String getServiceAccount() {
-        return serviceAccount;
-    }
-
-    public void setServiceAccount(String serviceAccount) {
-        this.serviceAccount = serviceAccount;
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 }

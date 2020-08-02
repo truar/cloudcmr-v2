@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:8080}
+servlet:
+    context-path: /api
+firebase:
+  projectId: truaro-test-gcp
+
+logging:
+  level:
+    root: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

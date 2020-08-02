@@ -1,0 +1,12 @@
+.git
+dist
+node_modules
+vendor
+*.jar
+target
+.firebase
+.mvn
+.idea
+*.iml
+mvnw*
+.travis.yml

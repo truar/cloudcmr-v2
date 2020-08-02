@@ -1,15 +1,10 @@
 package com.cloud.cmr.security.config;
 
-import com.cloud.cmr.security.web.FirebaseAuthenticationTokenFilter;
-import com.cloud.cmr.security.web.JwtAuthenticationFilter;
-import com.cloud.cmr.security.web.JwtProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cloud.cmr.security.authentication.FirebaseAuthenticationTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,22 +14,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 @EnableWebSecurity
-@EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private JwtProperties jwtProperties;
-    private ObjectMapper mapper;
-
-    public SecurityConfiguration(JwtProperties jwtProperties, ObjectMapper mapper) {
+    public SecurityConfiguration() {
         super();
-        this.jwtProperties = jwtProperties;
-        this.mapper = mapper;
-    }
-
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring()
-                .mvcMatchers("/", "/login", "*.ico", "/about", "/static/**");
     }
 
     @Autowired
@@ -50,7 +33,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and().csrf().disable()
                 .addFilterBefore(firebaseAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .mvcMatchers("/api/login", "/actuator/**").permitAll()
+                .mvcMatchers("/members/**").permitAll()
+                .mvcMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement()
@@ -67,10 +51,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         filter.setIncludeHeaders(false);
         filter.setAfterMessagePrefix("REQUEST DATA : ");
         return filter;
-    }
-
-    public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        return new JwtAuthenticationFilter(authenticationManager(), jwtProperties, mapper);
     }
 
     public FirebaseAuthenticationTokenFilter firebaseAuthenticationTokenFilter() throws Exception {
