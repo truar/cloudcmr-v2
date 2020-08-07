@@ -1,6 +1,7 @@
 {
     "hosting": [
         {
+            "site": "truaro-test-gcp",
             "public": "target/dist",
             "ignore": [
                 "firebase.json",
