@@ -10,12 +10,21 @@ export const account = {
         loginSuccess(state, principal, token) {
             state.principal = principal
             state.token = token
+        },
+        logoutSuccess(state) {
+            state.principal = {}
+            state.token = ''
         }
     },
     actions: {
         async login({ commit }, { email, password }) {
             let { user, token } = await userService.login(email, password)
             commit('loginSuccess', user, token)
+        },
+        logout({ commit }) {
+            console.log('logout')
+            userService.logout()
+            commit('logoutSuccess')
         }
     },
     getters: {

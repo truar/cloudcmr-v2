@@ -68,8 +68,11 @@
                 }
             }
         },
+        created() {
+            this.logout()
+        },
         methods: {
-            ...mapActions('account', ['login']),
+            ...mapActions('account', ['login', 'logout']),
             getValidationClass(fieldName) {
                 const field = this.$v.loginForm[fieldName]
                 if (field) {
