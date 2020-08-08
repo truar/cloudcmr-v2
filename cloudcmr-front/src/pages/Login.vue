@@ -3,7 +3,7 @@
         <md-content class="md-elevation-3">
 
             <div class="title">
-                <img src="@/assets/logo-cloud-cmr.png">
+                <img src="@/assets/logo.png">
                 <div class="md-title">Cloud CMR</div>
                 <div class="md-body-1">Page de connexion</div>
             </div>
