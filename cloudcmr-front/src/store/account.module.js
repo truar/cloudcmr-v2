@@ -22,7 +22,6 @@ export const account = {
             commit('loginSuccess', user, token)
         },
         logout({ commit }) {
-            console.log('logout')
             userService.logout()
             commit('logoutSuccess')
         }
