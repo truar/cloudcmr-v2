@@ -2,11 +2,16 @@
     <div class="page-container">
         <md-app>
             <md-app-toolbar class="md-primary" md-elevation="0">
-                <md-button class="md-icon-button" @click="toggleMenu" v-if="!menuVisible">
+                <md-button class="md-icon-button" @click="showMenu">
                     <md-icon>menu</md-icon>
                 </md-button>
                 <div class="md-toolbar-section-start">
-                    <span class="md-title">Cloud CMR</span>
+                    <router-link to='/'
+                                 class="md-list-item-router md-button-clean">
+                        <span class="md-title">Cloud CMR</span>
+                    </router-link>
+                    <span class="md-title">/</span>
+                    <slot name="subtitle"><span class="md-title">Accueil</span></slot>
                 </div>
                 <div class="md-toolbar-section-end">
                     <span>{{username}}</span>
@@ -24,29 +29,7 @@
                     </md-menu>
                 </div>
             </md-app-toolbar>
-            <md-app-drawer :md-active.sync="menuVisible">
-                <md-toolbar class="md-transparent" md-elevation="0">
-                    <span>Menu</span>
-
-                    <div class="md-toolbar-section-end">
-                        <md-button class="md-icon-button md-dense" @click="toggleMenu">
-                            <md-icon>keyboard_arrow_left</md-icon>
-                        </md-button>
-                    </div>
-                </md-toolbar>
-
-                <md-list>
-                    <md-list-item>
-                        <router-link to='/members'
-                                     class="md-list-item-router md-list-item-container md-button-clean">
-                            <div class="md-list-item-content md-ripple">
-                                <md-icon>people</md-icon>
-                                <span class="md-list-item-text">Gestion des adhérents</span>
-                            </div>
-                        </router-link>
-                    </md-list-item>
-                </md-list>
-            </md-app-drawer>
+            <sidebar slot="md-app-toolbar" :menuVisible.sync="menuVisible" />
             <md-app-content>
                 <slot></slot>
             </md-app-content>
@@ -56,21 +39,23 @@
 
 <script>
     import { mapGetters } from 'vuex'
+    import Sidebar from '../../components/header/Sidebar'
 
     export default {
         name: 'SimpleLayout',
-        data: () => ({
-            menuVisible: false
-        }),
+        components: { Sidebar },
         computed: {
             ...mapGetters('account', ['getPrincipalName']),
             username() {
                 return this.getPrincipalName
             }
         },
+        data: () => ({
+            menuVisible: false
+        }),
         methods: {
-            toggleMenu() {
-                this.menuVisible = !this.menuVisible
+            showMenu() {
+                this.menuVisible = true
             }
         }
     }
