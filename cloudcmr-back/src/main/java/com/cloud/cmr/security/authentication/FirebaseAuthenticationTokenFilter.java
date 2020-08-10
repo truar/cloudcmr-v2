@@ -29,8 +29,7 @@ public class FirebaseAuthenticationTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         logger.debug("doFilter:: authenticating...");
 
-        String authToken = httpRequest.getHeader(HttpHeaders.AUTHORIZATION);
-
+        var authToken = httpRequest.getHeader(HttpHeaders.AUTHORIZATION);
         if (authToken == null || authToken.isEmpty()) {
             filterChain.doFilter(httpRequest, response);
             return;

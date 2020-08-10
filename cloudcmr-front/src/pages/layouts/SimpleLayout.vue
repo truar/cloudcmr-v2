@@ -29,7 +29,7 @@
                     </md-menu>
                 </div>
             </md-app-toolbar>
-            <sidebar slot="md-app-toolbar" :menuVisible.sync="menuVisible" />
+            <sidebar slot="md-app-toolbar" :menuVisible.sync="menuVisible"/>
             <md-app-content>
                 <slot></slot>
             </md-app-content>
@@ -62,7 +62,7 @@
 </script>
 
 <style lang="scss">
-    .md-content {
-        height: 93vh
+    .md-app {
+        min-height: 100vh;
     }
 </style>
