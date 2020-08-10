@@ -61,7 +61,7 @@ steps:
     args:
       - '-c'
       - |
-        BASE_URL=${_SERVER_URL} yarn build
+        VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
   - id: 'deploy-firebase'
     name: gcr.io/${PROJECT_ID}/firebase
     waitFor: ['build-front']

@@ -17,7 +17,7 @@ firebase.initializeApp({
     authDomain: process.env.firebase?.authDomain || 'truaro-test-gcp.web.app'
 })
 
-axios.defaults.baseURL = process.env.BASE_URL || 'http://localhost:8080'
+axios.defaults.baseURL = process.env.VUE_APP_SERVER_URL || 'http://localhost:8080'
 axios.defaults.headers.common['Authorization'] = userService.getToken()
 
 Vue.use(VueMaterial)
