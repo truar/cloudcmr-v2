@@ -56,9 +56,12 @@ steps:
   - id: 'build-front'
     waitFor: ['install-yarn']
     name: node
-    entrypoint: yarn
+    entrypoint: /bin/bash
     dir: cloudcmr-front
-    args: ['build']
+    args:
+      - '-c'
+      - |
+        BASE_URL=https://${_FIREBASE_SITE} yarn build
   - id: 'deploy-firebase'
     name: gcr.io/${PROJECT_ID}/firebase
     waitFor: ['build-front']
