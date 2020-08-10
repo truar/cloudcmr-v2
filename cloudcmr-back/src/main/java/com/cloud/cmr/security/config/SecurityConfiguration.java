@@ -2,6 +2,7 @@ package com.cloud.cmr.security.config;
 
 import com.cloud.cmr.security.authentication.FirebaseAuthenticationTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,6 +26,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+    @Value("${cors.configuration.allowOrigins}")
+    private String[] allowOrigins;
 
     public SecurityConfiguration() {
         super();
@@ -43,7 +48,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(firebaseAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
                 .mvcMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .mvcMatchers("/members/**").authenticated()
                 .mvcMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
@@ -59,23 +63,24 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         filter.setIncludePayload(true);
         filter.setMaxPayloadLength(10000);
         filter.setIncludeHeaders(false);
-        filter.setAfterMessagePrefix("REQUEST DATA : ");
+        filter.setAfterMessagePrefix("REQUEST DATA : [");
         return filter;
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8088"));
+        configuration.setAllowedOrigins(Arrays.asList(allowOrigins));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(Duration.ofHours(1));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
-    public FirebaseAuthenticationTokenFilter firebaseAuthenticationTokenFilter() throws Exception {
+    public FirebaseAuthenticationTokenFilter firebaseAuthenticationTokenFilter() {
         return new FirebaseAuthenticationTokenFilter();
     }
 }
