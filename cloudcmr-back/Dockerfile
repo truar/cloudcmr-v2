@@ -16,7 +16,7 @@ RUN ./gradlew build -x test
 FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
 
 # Copy the jar to the production image from the builder stage.
-COPY --from=builder /app/build/libs/cloudcmr-*.jar /cloudcmr.jar
+COPY --from=builder /app/build/libs/*.jar /cloudcmr.jar
 
 # Run the web service on container startup.
 CMD ["java", "-jar", "/cloudcmr.jar"]
