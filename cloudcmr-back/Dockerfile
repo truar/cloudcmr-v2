@@ -5,9 +5,10 @@ FROM maven:3-jdk-11-slim as builder
 # Copy local code to the container image.
 WORKDIR /app
 COPY pom.xml .
-COPY src ./src
+RUN mvn dependency:go-offline
 
 # Build a release artifact.
+COPY src ./src
 RUN mvn package -DskipTests
 
 # Use AdoptOpenJDK for base image.
