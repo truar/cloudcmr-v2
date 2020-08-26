@@ -11,18 +11,39 @@ steps:
       - |
         gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz maven-dependencies.tgz || echo "end"
         tar -zxf maven-dependencies.tgz --directory / || echo "end"
-  ## Use || echo "end" to have the error ignored if cache file does not exist
+    ## Use || echo "end" to have the error ignored if cache file does not exist
 
   - id: "build-deploy-back"
-    # can't use slim image, as I need python to run google cloud sdk on this image
-    name: maven:3-jdk-11
-    entrypoint: mvn
-    # Uses a volume to have the .m2 local repository persisted across the build
+    name: 'gcr.io/cloud-builders/docker'
     volumes:
       - name: 'maven-repository'
         path: '/root/.m2/repository'
-    args: ['package', 'appengine:deploy', '-q', '-pl', 'cloudcmr-back', '-Dapp.deploy.version=${_BACK_VERSION}', '-Dapp.deploy.promote=${_PROMOTE_VERSION}']
-
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/cloudcmr-back:1.0.0', './cloudcmr-back']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-back:1.0.0']
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'cloudcmr-back'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/cloudcmr-back:1.0.0'
+      - '--region'
+      - 'europe-west1'
+      - '--memory'
+      - '512Mi'
+      - '--max-instances'
+      - '3'
+      - '--cpu'
+      - '1000m'
+      - '--concurrency'
+      - '80'
+      - '--allow-unauthenticated'
+      - '--platform'
+      - 'managed'
+    # Uses a volume to have the .m2 local repository persisted across the build
   - id: "upload-cached-maven-dependencies"
     name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
@@ -34,47 +55,49 @@ steps:
       - |
         tar -zcf maven-dependencies.tgz /root/.m2/repository
         gsutil cp maven-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz
+images:
+  - 'gcr.io/$PROJECT_ID/cloudcmr-back:1.0.0'
 
   ## Deploy frontEnd
-  - id: "download-cached-yarn-dependencies"
-    waitFor: ['-']
-    name: gcr.io/cloud-builders/gsutil
-    dir: cloudcmr-front
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz yarn-dependencies.tgz || echo "end"
-        tar -zxf yarn-dependencies.tgz || echo "end"
-
-  - id: 'install-yarn'
-    waitFor: ['download-cached-yarn-dependencies']
-    name: node
-    entrypoint: yarn
-    dir: cloudcmr-front
-    args: ['install', '--silent']
-  - id: 'build-front'
-    waitFor: ['install-yarn']
-    name: node
-    entrypoint: /bin/bash
-    dir: cloudcmr-front
-    args:
-      - '-c'
-      - |
-        VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
-  - id: 'deploy-firebase'
-    name: gcr.io/${PROJECT_ID}/firebase
-    waitFor: ['build-front']
-    args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
-    dir: cloudcmr-front
-
-  - id: "upload-cached-yarn-dependencies"
-    waitFor: ['build-front']
-    name: gcr.io/cloud-builders/gsutil
-    entrypoint: bash
-    dir: cloudcmr-front
-    args:
-      - '-c'
-      - |
-        tar -zcf yarn-dependencies.tgz ./node_modules
-        gsutil cp yarn-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz
+#  - id: "download-cached-yarn-dependencies"
+#    waitFor: ['-']
+#    name: gcr.io/cloud-builders/gsutil
+#    dir: cloudcmr-front
+#    entrypoint: bash
+#    args:
+#      - '-c'
+#      - |
+#        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz yarn-dependencies.tgz || echo "end"
+#        tar -zxf yarn-dependencies.tgz || echo "end"
+#
+#  - id: 'install-yarn'
+#    waitFor: ['download-cached-yarn-dependencies']
+#    name: node
+#    entrypoint: yarn
+#    dir: cloudcmr-front
+#    args: ['install', '--silent']
+#  - id: 'build-front'
+#    waitFor: ['install-yarn']
+#    name: node
+#    entrypoint: /bin/bash
+#    dir: cloudcmr-front
+#    args:
+#      - '-c'
+#      - |
+#        VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
+#  - id: 'deploy-firebase'
+#    name: gcr.io/${PROJECT_ID}/firebase
+#    waitFor: ['build-front']
+#    args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
+#    dir: cloudcmr-front
+#
+#  - id: "upload-cached-yarn-dependencies"
+#    waitFor: ['build-front']
+#    name: gcr.io/cloud-builders/gsutil
+#    entrypoint: bash
+#    dir: cloudcmr-front
+#    args:
+#      - '-c'
+#      - |
+#        tar -zcf yarn-dependencies.tgz ./node_modules
+#        gsutil cp yarn-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz
