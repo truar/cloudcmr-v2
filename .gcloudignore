@@ -9,4 +9,4 @@ target
 .idea
 *.iml
 mvnw*
-.travis.yml
+build
