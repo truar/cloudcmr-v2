@@ -1,6 +1,6 @@
 server:
   port: ${PORT:8080}
-servlet:
+  servlet:
     context-path: /api
 firebase:
   projectId: truaro-test-gcp
@@ -8,6 +8,13 @@ firebase:
 logging:
   level:
     root: INFO
+    org:
+      springframework:
+        web:
+          filter:
+            CommonsRequestLoggingFilter: DEBUG
+
+cors.configuration.allowOrigins: http://localhost:8088,https://staging-truaro-test-gcp.web.app,https://staging-truaro-test-gcp.firebaseapp.com,https://truaro-test-gcp.web.app,https://truaro-test-gcp.firebaseapp.com
 
 management:
   endpoints:

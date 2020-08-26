@@ -1,7 +1,7 @@
 package com.cloud.cmr.infrastructure.member;
 
 import com.cloud.cmr.domain.member.Member;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.CrudRepository;
 
-public interface JpaMemberRepository extends PagingAndSortingRepository<Member, Long> {
+public interface JpaMemberRepository extends CrudRepository<Member, Long> {
 }

@@ -1,14 +1,16 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import Login from '../views/Login.vue'
+import Home from '../pages/Home.vue'
+import Login from '../pages/Login.vue'
 import { userService } from '../services/user.service'
+import Members from '../pages/Members'
 
 Vue.use(VueRouter)
 
 const routes = [
     { path: '/', component: Home },
-    { path: '/login', component: Login }
+    { path: '/login', component: Login },
+    { path: '/members', component: Members }
 ]
 
 const router = new VueRouter({

@@ -6,6 +6,8 @@ import VueMaterial from 'vue-material'
 import 'vue-material/dist/vue-material.min.css'
 import 'vue-material/dist/theme/default.css'
 import * as firebase from 'firebase'
+import axios from 'axios'
+import { userService } from '@/services/user.service'
 
 Vue.config.productionTip = false
 
@@ -14,6 +16,9 @@ firebase.initializeApp({
     projectId: process.env.firbase?.projectId || 'truaro-test-gcp',
     authDomain: process.env.firebase?.authDomain || 'truaro-test-gcp.web.app'
 })
+
+axios.defaults.baseURL = process.env.VUE_APP_SERVER_URL || 'http://localhost:8080'
+axios.defaults.headers.common['Authorization'] = userService.getToken()
 
 Vue.use(VueMaterial)
 

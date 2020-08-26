@@ -10,6 +10,7 @@ target/
 # This folders are built by cypress, no need to track them
 /cloudcmr-front/tests/e2e/videos/
 /cloudcmr-front/tests/e2e/screenshots/
+.firebase
 
 # local env files
 .env.local

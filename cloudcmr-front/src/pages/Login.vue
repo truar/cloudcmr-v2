@@ -3,7 +3,7 @@
         <md-content class="md-elevation-3">
 
             <div class="title">
-                <img src="@/assets/logo-cloud-cmr.png">
+                <img src="@/assets/logo.png">
                 <div class="md-title">Cloud CMR</div>
                 <div class="md-body-1">Page de connexion</div>
             </div>
@@ -13,17 +13,17 @@
                     <span class="md-error">{{errorMessage}}</span>
                 </div>
                 <md-field :class="getValidationClass('email')">
-                    <label for="email">E-mail</label>
-                    <md-input id='email' v-model="login.email" autofocus></md-input>
-                    <span class="md-error" v-if="!$v.login.email.required">L'email est obligatoire</span>
-                    <span class="md-error" v-else-if="!$v.login.email.email">Format de l'email incorrect</span>
+                    <label for='email'>E-mail</label>
+                    <md-input id='email' v-model="loginForm.email" autofocus></md-input>
+                    <span class="md-error" v-if="!$v.loginForm.email.required">L'email est obligatoire</span>
+                    <span class="md-error" v-else-if="!$v.loginForm.email.email">Format de l'email incorrect</span>
                 </md-field>
 
                 <md-field md-has-password :class="getValidationClass('password')">
-                    <label for="password">Mot de passe</label>
-                    <md-input id="password" v-model="login.password" type="password"></md-input>
-                    <span class="md-error" v-if="!$v.login.password.required">Le mot de passe est obligatoire</span>
-                    <span class="md-error" v-else-if="!$v.login.password.minLength">La taille du mot de passe doit être supérieur à 6 caractères</span>
+                    <label for='password'>Mot de passe</label>
+                    <md-input id="password" v-model="loginForm.password" type="password"></md-input>
+                    <span class="md-error" v-if="!$v.loginForm.password.required">Le mot de passe est obligatoire</span>
+                    <span class="md-error" v-else-if="!$v.loginForm.password.minLength">La taille du mot de passe doit être supérieur à 6 caractères</span>
                 </md-field>
             </div>
 
@@ -41,6 +41,7 @@
 </template>
 
 <script>
+    import { mapActions } from 'vuex'
     import { validationMixin } from 'vuelidate'
     import { email, minLength, required } from 'vuelidate/lib/validators'
 
@@ -49,14 +50,14 @@
         mixins: [validationMixin],
         data: () => ({
             loading: false,
-            login: {
+            loginForm: {
                 email: '',
                 password: ''
             },
             errorMessage: null
         }),
         validations: {
-            login: {
+            loginForm: {
                 email: {
                     required,
                     email
@@ -67,9 +68,13 @@
                 }
             }
         },
+        created() {
+            this.logout()
+        },
         methods: {
+            ...mapActions('account', ['login', 'logout']),
             getValidationClass(fieldName) {
-                const field = this.$v.login[fieldName]
+                const field = this.$v.loginForm[fieldName]
                 if (field) {
                     return {
                         'md-invalid': field.$invalid && field.$dirty
@@ -78,8 +83,8 @@
             },
             auth() {
                 this.loading = true
-                const { email, password } = this.login
-                this.$store.dispatch('login', { email, password })
+                const { email, password } = this.loginForm
+                this.login({ email, password })
                     .then(() => this.$router.push('/'))
                     .catch(err => {
                         this.loading = false

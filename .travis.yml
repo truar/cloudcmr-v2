@@ -1,9 +1,0 @@
-language: java
-jdk:
-  - openjdk11
-
-install: ./mvnw clean install
-
-cache:
-  directories:
-    - node_modules
