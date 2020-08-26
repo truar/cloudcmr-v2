@@ -1,5 +1,6 @@
 steps:
-  - name: 'gcr.io/kaniko-project/executor:latest'
+  - id: 'dockerize-back'
+    name: 'gcr.io/kaniko-project/executor:latest'
     args:
       - --destination=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}
       - --context=/workspace/cloudcmr-back
