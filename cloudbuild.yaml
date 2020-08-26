@@ -1,7 +1,7 @@
 steps:
   - name: 'gcr.io/kaniko-project/executor:latest'
     args:
-      - --destination=gcr.io/$PROJECT_ID/cloudcmr-back:1.0.0
+      - --destination=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}
       - --context=/workspace/cloudcmr-back
       - --cache=true
       - --cache-ttl=24h
@@ -13,52 +13,55 @@ steps:
     args:
       - '-c'
       - |
-        gcloud beta run services replace cloudcmr-back-service.yaml \
+        apt-get install -qq -y gettext
+        export IMAGE_VERSION=${SHORT_SHA}
+        envsubst < cloudcmr-back-service.yaml > cloudcmr-back-service_with_env.yaml
+        gcloud beta run services replace cloudcmr-back-service_with_env.yaml \
           --platform=managed --region=europe-west1
         gcloud run services add-iam-policy-binding cloudcmr-back \
           --platform=managed --region=europe-west1 \
           --member="allUsers" --role="roles/run.invoker"
 
   ## Deploy frontEnd
-  - id: "download-cached-yarn-dependencies"
-    waitFor: ['-']
-    name: gcr.io/cloud-builders/gsutil
-    dir: cloudcmr-front
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz yarn-dependencies.tgz || echo "end"
-        tar -zxf yarn-dependencies.tgz || echo "end"
-
-  - id: 'install-yarn'
-    waitFor: ['download-cached-yarn-dependencies']
-    name: node
-    entrypoint: yarn
-    dir: cloudcmr-front
-    args: ['install', '--silent']
-  - id: 'build-front'
-    waitFor: ['install-yarn']
-    name: node
-    entrypoint: /bin/bash
-    dir: cloudcmr-front
-    args:
-      - '-c'
-      - |
-        VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
-  - id: 'deploy-firebase'
-    name: gcr.io/${PROJECT_ID}/firebase
-    waitFor: ['build-front']
-    args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
-    dir: cloudcmr-front
-
-  - id: "upload-cached-yarn-dependencies"
-    waitFor: ['build-front']
-    name: gcr.io/cloud-builders/gsutil
-    entrypoint: bash
-    dir: cloudcmr-front
-    args:
-      - '-c'
-      - |
-        tar -zcf yarn-dependencies.tgz ./node_modules
-        gsutil cp yarn-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz
+#  - id: "download-cached-yarn-dependencies"
+#    waitFor: ['-']
+#    name: gcr.io/cloud-builders/gsutil
+#    dir: cloudcmr-front
+#    entrypoint: bash
+#    args:
+#      - '-c'
+#      - |
+#        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz yarn-dependencies.tgz || echo "end"
+#        tar -zxf yarn-dependencies.tgz || echo "end"
+#
+#  - id: 'install-yarn'
+#    waitFor: ['download-cached-yarn-dependencies']
+#    name: node
+#    entrypoint: yarn
+#    dir: cloudcmr-front
+#    args: ['install', '--silent']
+#  - id: 'build-front'
+#    waitFor: ['install-yarn']
+#    name: node
+#    entrypoint: /bin/bash
+#    dir: cloudcmr-front
+#    args:
+#      - '-c'
+#      - |
+#        VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
+#  - id: 'deploy-firebase'
+#    name: gcr.io/${PROJECT_ID}/firebase
+#    waitFor: ['build-front']
+#    args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
+#    dir: cloudcmr-front
+#
+#  - id: "upload-cached-yarn-dependencies"
+#    waitFor: ['build-front']
+#    name: gcr.io/cloud-builders/gsutil
+#    entrypoint: bash
+#    dir: cloudcmr-front
+#    args:
+#      - '-c'
+#      - |
+#        tar -zcf yarn-dependencies.tgz ./node_modules
+#        gsutil cp yarn-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz
