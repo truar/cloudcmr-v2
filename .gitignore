@@ -3,6 +3,8 @@ node_modules/
 node/
 dist/
 target/
+build/
+.gradle/
 
 # This folder is built by maven install lifecycle. No need to store those files in git
 /cloudcmr-back/src/main/resources/public/

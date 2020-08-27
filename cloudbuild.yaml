@@ -4,6 +4,7 @@ steps:
     args:
       - --destination=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}
       - --context=/workspace/cloudcmr-back
+      - --dockerfile=/workspace/cloudcmr-back/src/main/docker/Dockerfile
       - --cache=true
       - --cache-ttl=24h
 
