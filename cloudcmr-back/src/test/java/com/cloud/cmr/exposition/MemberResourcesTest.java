@@ -57,14 +57,13 @@ public class MemberResourcesTest {
     }
 
     @Test
-    @Transactional
     @WithMockUser(username = "user")
     void create_a_new_member_and_fetch_it() throws Exception {
         when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
         MvcResult postResponse = createMember("Doe", "John", "john@doe.com");
 
         String location = postResponse.getResponse().getHeader(LOCATION);
-
+        Thread.sleep(10000);
         mockMvc.perform(get(location))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastName", equalTo("Doe")))

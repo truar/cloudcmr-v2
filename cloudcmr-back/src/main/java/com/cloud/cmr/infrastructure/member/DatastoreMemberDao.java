@@ -1,10 +1,10 @@
 package com.cloud.cmr.infrastructure.member;
 
 import com.cloud.cmr.domain.member.Member;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.cloud.gcp.data.datastore.repository.DatastoreRepository;
 
 import java.util.List;
 
-public interface JpaMemberDao extends JpaRepository<Member, String> {
+public interface DatastoreMemberDao extends DatastoreRepository<Member, String> {
     List<Member> findAllByOrderByLastNameAscFirstNameAsc();
 }

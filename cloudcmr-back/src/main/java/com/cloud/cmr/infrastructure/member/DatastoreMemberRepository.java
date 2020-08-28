@@ -8,16 +8,16 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public class JpaMemberRepository implements MemberRepository {
-    private JpaMemberDao jpaMemberDao;
+public class DatastoreMemberRepository implements MemberRepository {
+    private DatastoreMemberDao datastoreMemberDao;
 
-    public JpaMemberRepository(JpaMemberDao jpaMemberDao) {
-        this.jpaMemberDao = jpaMemberDao;
+    public DatastoreMemberRepository(DatastoreMemberDao datastoreMemberDao) {
+        this.datastoreMemberDao = datastoreMemberDao;
     }
 
     @Override
     public void save(Member member) {
-        jpaMemberDao.save(member);
+        datastoreMemberDao.save(member);
     }
 
     @Override
@@ -27,12 +27,12 @@ public class JpaMemberRepository implements MemberRepository {
 
     @Override
     public Member findById(String memberId) {
-        return jpaMemberDao.findById(memberId)
+        return datastoreMemberDao.findById(memberId)
                 .orElseThrow();
     }
 
     @Override
     public List<Member> findAll() {
-        return jpaMemberDao.findAllByOrderByLastNameAscFirstNameAsc();
+        return datastoreMemberDao.findAllByOrderByLastNameAscFirstNameAsc();
     }
 }
