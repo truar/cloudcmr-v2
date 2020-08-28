@@ -1,4 +1,4 @@
-package com.cloud.cmr.exposition;
+package com.cloud.cmr.exposition.member;
 
 import com.cloud.cmr.application.member.MemberApplicationService;
 import com.cloud.cmr.domain.member.Member;
@@ -8,6 +8,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/members")
@@ -20,8 +23,8 @@ public class MemberResources {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Void> createMember(@RequestBody CreateMemberDTO createMemberDTO, Principal principal) {
-        String memberId = memberApplicationService.create(createMemberDTO.lastName, createMemberDTO.firstName, createMemberDTO.email, principal.getName());
+    public ResponseEntity<Void> createMember(@RequestBody CreateMemberRequest createMemberRequest, Principal principal) {
+        String memberId = memberApplicationService.create(createMemberRequest.lastName, createMemberRequest.firstName, createMemberRequest.email, principal.getName());
         return ResponseEntity.created(buildMemberLocation(memberId)).build();
     }
 
@@ -36,6 +39,19 @@ public class MemberResources {
     public MemberDTO getMember(@PathVariable String memberId) {
         Member member = memberApplicationService.memberOfId(memberId);
         return toMemberDTO(member);
+    }
+
+    @GetMapping
+    public MemberListDTO getAllMembers() {
+        List<Member> members = memberApplicationService.allMembers();
+        return toMemberListDTO(members);
+    }
+
+    private MemberListDTO toMemberListDTO(List<Member> members) {
+        List<MemberDTO> membersDTO = members.stream()
+                .map(this::toMemberDTO)
+                .collect(toList());
+        return new MemberListDTO(membersDTO);
     }
 
     private MemberDTO toMemberDTO(Member member) {

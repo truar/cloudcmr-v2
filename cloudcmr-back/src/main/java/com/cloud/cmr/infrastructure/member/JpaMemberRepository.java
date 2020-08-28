@@ -4,6 +4,7 @@ import com.cloud.cmr.domain.member.Member;
 import com.cloud.cmr.domain.member.MemberRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -28,5 +29,10 @@ public class JpaMemberRepository implements MemberRepository {
     public Member findById(String memberId) {
         return jpaMemberDao.findById(memberId)
                 .orElseThrow();
+    }
+
+    @Override
+    public List<Member> findAll() {
+        return jpaMemberDao.findAllByOrderByLastNameAscFirstNameAsc();
     }
 }

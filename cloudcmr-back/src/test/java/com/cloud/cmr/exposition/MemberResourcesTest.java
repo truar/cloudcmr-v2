@@ -76,9 +76,9 @@ public class MemberResourcesTest {
 
     @Test
     @Transactional
-    @WithMockUser
-    @Disabled
+    @WithMockUser(username = "user")
     void fetch_all_members() throws Exception {
+        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
         createMember("lastName1", "firstName1", "abc@def.com");
         createMember("lastName2", "firstName2", "def@ghi.fr");
 
@@ -88,9 +88,13 @@ public class MemberResourcesTest {
                 .andExpect(jsonPath("$.members[0].lastName", equalTo("lastName1")))
                 .andExpect(jsonPath("$.members[0].firstName", equalTo("firstName1")))
                 .andExpect(jsonPath("$.members[0].email", equalTo("abc@def.com")))
+                .andExpect(jsonPath("$.members[0].createdAt", equalTo("2020-08-28T10:00:00Z")))
+                .andExpect(jsonPath("$.members[0].creator", equalTo("user")))
                 .andExpect(jsonPath("$.members[1].lastName", equalTo("lastName2")))
                 .andExpect(jsonPath("$.members[1].firstName", equalTo("firstName2")))
                 .andExpect(jsonPath("$.members[1].email", equalTo("def@ghi.fr")))
+                .andExpect(jsonPath("$.members[1].createdAt", equalTo("2020-08-28T10:00:00Z")))
+                .andExpect(jsonPath("$.members[1].creator", equalTo("user")))
         ;
     }
 

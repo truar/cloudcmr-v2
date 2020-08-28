@@ -1,4 +1,4 @@
-package com.cloud.cmr.exposition;
+package com.cloud.cmr.exposition.member;
 
 import java.time.Instant;
 

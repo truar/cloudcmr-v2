@@ -5,6 +5,7 @@ import com.cloud.cmr.domain.member.MemberRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
+import java.util.List;
 
 @Service
 public class MemberApplicationService {
@@ -26,5 +27,9 @@ public class MemberApplicationService {
 
     public Member memberOfId(String memberId) {
         return memberRepository.findById(memberId);
+    }
+
+    public List<Member> allMembers() {
+        return memberRepository.findAll();
     }
 }
