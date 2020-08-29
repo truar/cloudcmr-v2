@@ -21,7 +21,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.google.firebase:firebase-admin:6.15.0'
-//    implementation 'org.hsqldb:hsqldb'
     implementation 'org.springframework.cloud:spring-cloud-gcp-starter-data-datastore'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.security:spring-security-test'
@@ -29,6 +28,7 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation 'org.springframework.security:spring-security-test'
+    testCompile group: 'org.awaitility', name: 'awaitility', version: '3.0.0'
 }
 
 dependencyManagement {

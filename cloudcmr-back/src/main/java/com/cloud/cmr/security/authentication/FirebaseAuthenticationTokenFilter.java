@@ -3,56 +3,28 @@ package com.cloud.cmr.security.authentication;
 import com.google.firebase.auth.FirebaseAuth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.stereotype.Component;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
  * Authenticate a User on Firebase based on the Token ID.
- * Generates a Cookie for the user
  */
-public class FirebaseAuthenticationTokenFilter extends OncePerRequestFilter {
+@Component
+@Profile("!test")
+public class FirebaseAuthenticationTokenFilter extends AuthenticationTokenFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(FirebaseAuthenticationTokenFilter.class);
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest httpRequest, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        logger.debug("doFilter:: authenticating...");
-
-        var authToken = httpRequest.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authToken == null || authToken.isEmpty()) {
-            filterChain.doFilter(httpRequest, response);
-            return;
-        }
-
-        try {
-            var authentication = getAndValidateAuthentication(authToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            logger.debug("doFilter():: successfully authenticated.");
-        } catch (Exception ex) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            logger.error("Fail to authenticate.", ex);
-        }
-
-        filterChain.doFilter(httpRequest, response);
-    }
 
     /**
      * @param authToken Firebase access token string
      * @return the computed result
      * @throws Exception
      */
-    private Authentication getAndValidateAuthentication(String authToken) throws Exception {
+    protected Authentication getAndValidateAuthentication(String authToken) throws Exception {
         var firebaseToken = FirebaseAuth.getInstance().verifyIdToken(authToken);
         return new UsernamePasswordAuthenticationToken(firebaseToken, authToken, new ArrayList<>());
     }
