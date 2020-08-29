@@ -1,6 +1,7 @@
 package com.cloud.cmr.exposition.member;
 
 import com.cloud.cmr.application.member.MemberApplicationService;
+import com.cloud.cmr.domain.member.Address;
 import com.cloud.cmr.domain.member.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +44,11 @@ public class MemberResources {
         return toMemberDTO(member);
     }
 
+    @PostMapping("/{memberId}/changeAddress")
+    public void getMember(@PathVariable String memberId, @RequestBody ChangeAddressRequest changeAddressRequest) {
+        memberApplicationService.changeAddressOfMember(memberId, changeAddressRequest.line1, changeAddressRequest.line2, changeAddressRequest.line3, changeAddressRequest.city, changeAddressRequest.zipCode);
+    }
+
     @GetMapping
     public MemberListDTO getAllMembers() {
         List<Member> members = memberApplicationService.allMembers();
@@ -57,7 +63,15 @@ public class MemberResources {
     }
 
     private MemberDTO toMemberDTO(Member member) {
+        AddressDTO addressDTO = toAddressDTO(member.getAddress());
         return new MemberDTO(member.getLastName(), member.getFirstName(), member.getEmail(), member.getGender().name(),
-                member.getPhone(), member.getMobile(), member.getCreatedAt(), member.getCreator());
+                member.getPhone(), member.getMobile(), addressDTO, member.getCreatedAt(), member.getCreator());
+    }
+
+    private AddressDTO toAddressDTO(Address address) {
+        if(address == null) {
+            return null;
+        }
+        return new AddressDTO(address.getLine1(), address.getLine2(), address.getLine3(), address.getCity(), address.getZipCode());
     }
 }

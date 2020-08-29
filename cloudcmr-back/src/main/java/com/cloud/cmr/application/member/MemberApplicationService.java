@@ -1,9 +1,6 @@
 package com.cloud.cmr.application.member;
 
-import com.cloud.cmr.domain.member.Gender;
-import com.cloud.cmr.domain.member.Member;
-import com.cloud.cmr.domain.member.MemberRepository;
-import com.cloud.cmr.domain.member.PhoneNumber;
+import com.cloud.cmr.domain.member.*;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -33,5 +30,11 @@ public class MemberApplicationService {
 
     public List<Member> allMembers() {
         return memberRepository.findAll();
+    }
+
+    public void changeAddressOfMember(String memberId, String line1, String line2, String line3, String city, String zipCode) {
+        Member member = memberRepository.findById(memberId);
+        member.changeAddress(new Address(line1, line2, line3, city, zipCode));
+        memberRepository.save(member);
     }
 }

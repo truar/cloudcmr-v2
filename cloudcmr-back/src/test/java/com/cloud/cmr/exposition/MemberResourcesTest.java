@@ -52,17 +52,21 @@ public class MemberResourcesTest {
                 "\"mobile\":\"" + mobile + "\"" +
                 "}";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        HttpEntity<String> entity = new HttpEntity<>(memberJson, headers);
-        ResponseEntity<Void> responseEntity = authenticatedRequest().
-                postForEntity("/members/create", entity, Void.class);
+        ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         URI location = responseEntity.getHeaders().getLocation();
         assertThat(location).isNotNull();
 
         return location;
+    }
+
+    private ResponseEntity<Void> postRequest(String endpoint, String json) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<String> entity = new HttpEntity<>(json, headers);
+        return authenticatedRequest().
+                postForEntity(endpoint, entity, Void.class);
     }
 
     @Test
@@ -116,6 +120,34 @@ public class MemberResourcesTest {
         assertThat(members.get(1).mobile).isEqualTo("0707070707");
         assertThat(members.get(1).createdAt).isEqualTo("2020-08-28T10:00:00Z");
         assertThat(members.get(1).creator).isEqualTo("user");
+    }
+
+    @Test
+    void a_user_can_change_the_address_of_a_member() {
+        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+        URI location = createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+        String addressJson = "{" +
+                "\"line1\": \"123 RUE VOLTAIRE\"," +
+                "\"line2\": \"ALLEE DES TULIPES\"," +
+                "\"line3\": \"LIEU-DIT\"," +
+                "\"city\": \"CITY\"," +
+                "\"zipCode\": \"12345\"" +
+                "}";
+        postRequest(location + "/changeAddress", addressJson);
+
+        Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    MemberDTO memberDTO = authenticatedRequest().getForObject(location, MemberDTO.class);
+                    return memberDTO != null && memberDTO.address != null;
+                });
+
+        MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
+        assertThat(member.address.line1).isEqualTo("123 RUE VOLTAIRE");
+        assertThat(member.address.line2).isEqualTo("ALLEE DES TULIPES");
+        assertThat(member.address.line3).isEqualTo("LIEU-DIT");
+        assertThat(member.address.city).isEqualTo("CITY");
+        assertThat(member.address.zipCode).isEqualTo("12345");
+
     }
 
     private TestRestTemplate authenticatedRequest() {

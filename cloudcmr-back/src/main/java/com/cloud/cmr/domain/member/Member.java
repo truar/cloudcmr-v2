@@ -11,17 +11,19 @@ public class Member {
 
     @Id
     private String id;
-
     private String lastName;
     private String firstName;
     private String email;
-    private Gender gender;
     private PhoneNumber phone;
     private PhoneNumber mobile;
+    @Unindexed
+    private Gender gender;
     @Unindexed
     private String creator;
     @Unindexed
     private Instant createdAt;
+    @Unindexed
+    private Address address;
 
     public Member(String id, String lastName, String firstName, String email, Gender gender, PhoneNumber phone, PhoneNumber mobile, String creator, Instant createdAt) {
         this.id = id;
@@ -69,5 +71,13 @@ public class Member {
 
     public String getMobile() {
         return mobile.getNumber();
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void changeAddress(Address address) {
+        this.address = address;
     }
 }
