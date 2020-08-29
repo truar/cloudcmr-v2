@@ -107,6 +107,23 @@ A note on the `dockerfile`
 A note on `Cloud Run`
 - Your instance can be scaled down to zero when there is no traffic -> Match perfectly with my cost constraint
 - Can be configured easily using the CLI or a deployment file (which I use) to set parameters for auto-scaling like concurrency limit, the number of instance you allow to scale a most...
+- You need to leave the port assigned via an environment variable provided by Cloud Run
+```yaml
+#appliction.properties
+server:
+  port: ${PORT:8080}
+```
+- The Cloud Run deployment file is `cloudcmr-back-service.yaml`, where it describes:
+    - the region
+    - the max number of auto-scaled instance
+    - the image I want to deploy
+        - By the way, as I am not on master, I use a environment variable, replace by the `envsubst` tool during the step
+    - the container port
+    - the resources limit (CPU/Memory)
+    - the traffic split (always 100% to the new version)
+
+Sources:
+- [Cloud Runs configuration documentation](https://cloud.google.com/run/docs/configuring/memory-limits)
 
 #### Why not App Engine ? 
 At first, I used App engine Standard environment for the same reason I am using `Cloud Run`. But, there is some limitation I wanted to avoid:
@@ -156,6 +173,12 @@ For a first use, Cloud build is okay, but there is a lot of improvements:
 - You can manipulate only `steps` which lake of abstraction and reusability
 - No easy way of caching dependencies (example with yarn)
 - The `waitFor` are not very intuitive, and you need some thinking to use it properly
+
+To use it properly:
+- I created `cloudbuild.yaml` files, which contains the steps to build the application
+- I used `Source repositories` to link my github with my GCP projects
+- I created `Cloud build triggers` to trigger the build when I push on a branch
+    - I have only one trigger for any branch but master for now. But it will come soon 
 
 Even if this is simple, I've tried to optimize it as much as I could, in order to see how far I could go with `Cloud Build`
 
@@ -221,6 +244,13 @@ You will save some storage fee by doing so.
 
 Sources: 
 - [Cloud build ignore file](https://cloud.google.com/cloud-build/docs/speeding-up-builds#gcloudignore)
+
+
+## What is left to think ?
+
+1. Should I use the same project for testing and for production ? I don't think so, but it might be cheaper ?
+2. How will I configure the master trigger build ? 
+3. I have to define my RPO and RTO (backup data, recovery plan...)
 
 ## Execute the tests
 ### Backend test
