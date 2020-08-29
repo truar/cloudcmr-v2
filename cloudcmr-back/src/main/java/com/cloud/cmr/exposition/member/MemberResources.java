@@ -24,7 +24,9 @@ public class MemberResources {
 
     @PostMapping("/create")
     public ResponseEntity<Void> createMember(@RequestBody CreateMemberRequest createMemberRequest, Principal principal) {
-        String memberId = memberApplicationService.create(createMemberRequest.lastName, createMemberRequest.firstName, createMemberRequest.email, principal.getName());
+        String memberId = memberApplicationService.create(createMemberRequest.lastName, createMemberRequest.firstName,
+                createMemberRequest.email, createMemberRequest.gender, createMemberRequest.phone,
+                createMemberRequest.mobile, principal.getName());
         return ResponseEntity.created(buildMemberLocation(memberId)).build();
     }
 
@@ -55,6 +57,7 @@ public class MemberResources {
     }
 
     private MemberDTO toMemberDTO(Member member) {
-        return new MemberDTO(member.getLastName(), member.getFirstName(), member.getEmail(), member.getCreatedAt(), member.getCreator());
+        return new MemberDTO(member.getLastName(), member.getFirstName(), member.getEmail(), member.getGender().name(),
+                member.getPhone(), member.getMobile(), member.getCreatedAt(), member.getCreator());
     }
 }

@@ -15,16 +15,22 @@ public class Member {
     private String lastName;
     private String firstName;
     private String email;
+    private Gender gender;
+    private PhoneNumber phone;
+    private PhoneNumber mobile;
     @Unindexed
     private String creator;
     @Unindexed
     private Instant createdAt;
 
-    public Member(String id, String lastName, String firstName, String email, String creator, Instant createdAt) {
+    public Member(String id, String lastName, String firstName, String email, Gender gender, PhoneNumber phone, PhoneNumber mobile, String creator, Instant createdAt) {
         this.id = id;
         this.lastName = lastName;
         this.firstName = firstName;
         this.email = email;
+        this.gender = gender;
+        this.phone = phone;
+        this.mobile = mobile;
         this.creator = creator;
         this.createdAt = createdAt;
     }
@@ -51,5 +57,17 @@ public class Member {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public String getPhone() {
+        return phone.getNumber();
+    }
+
+    public String getMobile() {
+        return mobile.getNumber();
     }
 }
