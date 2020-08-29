@@ -1,4 +1,4 @@
-package com.cloud.cmr.security.authentication;
+package com.cloud.cmr.configuration.security.authentication;
 
 import com.google.firebase.auth.FirebaseAuth;
 import org.slf4j.Logger;

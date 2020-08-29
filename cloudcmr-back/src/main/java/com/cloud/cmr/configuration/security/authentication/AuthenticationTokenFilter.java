@@ -1,4 +1,4 @@
-package com.cloud.cmr.security.authentication;
+package com.cloud.cmr.configuration.security.authentication;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;

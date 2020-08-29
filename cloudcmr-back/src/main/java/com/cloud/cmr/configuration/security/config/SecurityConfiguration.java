@@ -1,6 +1,6 @@
-package com.cloud.cmr.security.config;
+package com.cloud.cmr.configuration.security.config;
 
-import com.cloud.cmr.security.authentication.AuthenticationTokenFilter;
+import com.cloud.cmr.configuration.security.authentication.AuthenticationTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
