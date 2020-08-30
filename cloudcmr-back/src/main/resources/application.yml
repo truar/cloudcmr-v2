@@ -26,4 +26,4 @@ spring:
   cloud:
     gcp:
       datastore:
-        namespace: ${DATASTORE_NAMESPACE:local}
+        namespace: ${DATASTORE_NAMESPACE:localtest}

@@ -2,14 +2,14 @@
     <simple-layout>
         <template slot="subtitle"><span class="md-title">Adhérents</span></template>
         <div>
-            <md-table v-model="searched" md-sort="name" md-sort-order="asc" md-card>
+            <md-table :value="searched" md-sort="name" md-sort-order="asc" md-card>
                 <md-table-toolbar>
                     <div class="md-toolbar-section-start">
                         <h1 class="md-title">Liste des adhérents</h1>
                     </div>
 
                     <md-field md-clearable class="md-toolbar-section-end">
-                        <md-input placeholder="Recherche rapide par nom/prénom..." v-model="search"
+                        <md-input placeholder="Recherche rapide par nom/prénom..." v-model="searchLocal"
                                   @input="searchOnTable"/>
                     </md-field>
                 </md-table-toolbar>
@@ -32,47 +32,39 @@
 </template>
 
 <script>
-    import SimpleLayout from '@/pages/layouts/SimpleLayout.vue'
-    import { memberService } from '@/services/member.service.js'
+import SimpleLayout from '@/pages/layouts/SimpleLayout.vue'
+import { mapActions, mapState } from 'vuex'
 
-    const toLower = text => {
-        return text.toString().toLowerCase()
-    }
-
-    const searchByName = (items, term) => {
-        if (term) {
-            return items.filter(item => toLower(item.lastName).includes(toLower(term)))
-        }
-        return items
-    }
-
-    export default {
+export default {
         name: 'Members',
         components: {
             SimpleLayout
         },
-        data: () => ({
-            search: null,
-            searched: [],
-            members: []
-        }),
+        computed: {
+            ...mapState('members', ['search', 'searched', 'members']),
+            searchLocal: {
+                get() {
+                    return this.search
+                },
+                set(value) {
+                    this.$store.commit('members/updateSearch', value)
+                }
+            }
+        },
         methods: {
+            ...mapActions('members', ['fetchAll', 'searchOnTable']),
             newMember() {
                 window.alert('Noop')
-            },
-            searchOnTable() {
-                this.searched = searchByName(this.members, this.search)
             }
         },
         async created() {
-            this.members = await memberService.fetchAll()
-            this.searched = this.members
+            await this.fetchAll()
         }
     }
 </script>
 
 <style lang='scss' scoped>
-    .md-field {
-        max-width: 300px;
-    }
+.md-field {
+    max-width: 300px;
+}
 </style>

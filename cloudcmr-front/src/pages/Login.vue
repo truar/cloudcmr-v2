@@ -41,11 +41,11 @@
 </template>
 
 <script>
-    import { mapActions } from 'vuex'
-    import { validationMixin } from 'vuelidate'
-    import { email, minLength, required } from 'vuelidate/lib/validators'
+import { mapActions } from 'vuex'
+import { validationMixin } from 'vuelidate'
+import { email, minLength, required } from 'vuelidate/lib/validators'
 
-    export default {
+export default {
         name: 'Login',
         mixins: [validationMixin],
         data: () => ({
@@ -85,7 +85,7 @@
                 this.loading = true
                 const { email, password } = this.loginForm
                 this.login({ email, password })
-                    .then(() => this.$router.push('/'))
+                    .then(() => this.$router.replace(this.$route.query.from || '/'))
                     .catch(err => {
                         this.loading = false
                         if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {

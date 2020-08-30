@@ -19,6 +19,14 @@ firebase.initializeApp({
 
 axios.defaults.baseURL = process.env.VUE_APP_SERVER_URL || 'http://localhost:8080'
 axios.defaults.headers.common['Authorization'] = userService.getToken()
+axios.interceptors.response.use(function(response) {
+    return response
+}, function(error) {
+    if (error.response.status === 401) {
+        const currentLocation = window.location.pathname
+        router.push({ name: 'login', query: { from: currentLocation } })
+    }
+})
 
 Vue.use(VueMaterial)
 

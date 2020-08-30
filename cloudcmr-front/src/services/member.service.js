@@ -6,5 +6,5 @@ export const memberService = {
 
 async function fetchAll() {
     const rawData = await axios.get('/api/members')
-    return rawData.data._embedded.members
+    return rawData.data?.members
 }

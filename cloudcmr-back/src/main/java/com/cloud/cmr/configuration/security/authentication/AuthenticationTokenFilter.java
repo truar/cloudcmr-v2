@@ -31,6 +31,7 @@ public abstract class AuthenticationTokenFilter extends OncePerRequestFilter {
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             logger.error("Fail to authenticate.", ex);
+            return ;
         }
 
         filterChain.doFilter(httpRequest, response);
