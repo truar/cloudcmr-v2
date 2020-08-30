@@ -35,6 +35,11 @@ export const members = {
             const members = await memberService.fetchAll()
             commit('fetchAllSuccess', members)
         },
+        async createMember({ commit, dispatch }, { lastName, firstName, gender, email, mobile, birthDate }) {
+            await memberService.create(lastName, firstName, gender, email, mobile, birthDate)
+            await dispatch('fetchAll')
+            dispatch('searchOnTable')
+        },
         searchOnTable({ commit, state }) {
             commit('searchSuccess', searchByName(state.members, state.search))
         }
