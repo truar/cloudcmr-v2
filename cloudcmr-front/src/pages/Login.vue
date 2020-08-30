@@ -41,11 +41,11 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import { validationMixin } from 'vuelidate'
-import { email, minLength, required } from 'vuelidate/lib/validators'
+    import { mapActions } from 'vuex'
+    import { validationMixin } from 'vuelidate'
+    import { email, minLength, required } from 'vuelidate/lib/validators'
 
-export default {
+    export default {
         name: 'Login',
         mixins: [validationMixin],
         data: () => ({

@@ -32,10 +32,10 @@
 </template>
 
 <script>
-import SimpleLayout from '@/pages/layouts/SimpleLayout.vue'
-import { mapActions, mapState } from 'vuex'
+    import SimpleLayout from '@/pages/layouts/SimpleLayout.vue'
+    import { mapActions, mapState } from 'vuex'
 
-export default {
+    export default {
         name: 'Members',
         components: {
             SimpleLayout
