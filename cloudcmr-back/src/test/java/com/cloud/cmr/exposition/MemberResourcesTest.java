@@ -5,6 +5,7 @@ import com.cloud.cmr.exposition.member.MemberDTO;
 import com.cloud.cmr.exposition.member.MemberListDTO;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +20,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -147,6 +149,24 @@ public class MemberResourcesTest {
         assertThat(member.address.line3).isEqualTo("LIEU-DIT");
         assertThat(member.address.city).isEqualTo("CITY");
         assertThat(member.address.zipCode).isEqualTo("12345");
+
+    }
+
+    @Test
+    @Disabled
+    void generate_1000_members() {
+        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+        IntStream.range(0, 1000).forEach(i -> {
+            URI location = createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+//            String addressJson = "{" +
+//                    "\"line1\": \"123 RUE VOLTAIRE\"," +
+//                    "\"line2\": \"ALLEE DES TULIPES\"," +
+//                    "\"line3\": \"LIEU-DIT\"," +
+//                    "\"city\": \"CITY\"," +
+//                    "\"zipCode\": \"12345\"" +
+//                    "}";
+//            postRequest(location + "/changeAddress", addressJson);
+        });
 
     }
 

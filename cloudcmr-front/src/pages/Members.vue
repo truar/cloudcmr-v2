@@ -26,6 +26,16 @@
                     <md-table-cell md-label="Prenom" md-sort-by="firstName">{{ item.firstName }}</md-table-cell>
                     <md-table-cell md-label="E-mail" md-sort-by="email">{{ item.email }}</md-table-cell>
                 </md-table-row>
+                <md-table-pagination
+                    md-label="Pages"
+                    :md-page-size="page.pageSize"
+                    :md-page="page.currentPage"
+                    :md-total="page.total"
+                    md-separator="de"
+                    :md-page-options="page.pageOptions"
+                    @update:mdPageSize="onMdPageSize"
+                    @pagination="onPagination">
+                </md-table-pagination>
             </md-table>
             <md-dialog :md-active.sync="showCreationForm">
                 <md-dialog-title>Création d'un nouvel adhérent</md-dialog-title>
@@ -78,6 +88,7 @@
 
 <script>
 import SimpleLayout from '@/pages/layouts/SimpleLayout.vue'
+import MdTablePagination from '@/components/tables/MdTablePagination.vue'
 import { validationMixin } from 'vuelidate'
 import { email, required } from 'vuelidate/lib/validators'
 import { mapActions, mapState } from 'vuex'
@@ -86,10 +97,17 @@ export default {
     name: 'Members',
     mixins: [validationMixin],
     components: {
-        SimpleLayout
+        SimpleLayout,
+        MdTablePagination
     },
     data: () => ({
         showCreationForm: false,
+        page: {
+            pageSize: 5,
+            currentPage: 1,
+            pageOptions: [5, 10, 25, 50],
+            total: 35
+        },
         form: {
             lastName: '',
             firstName: '',
@@ -151,6 +169,15 @@ export default {
                 await this.createMember({ lastName, firstName, gender, email, mobile, birthDate })
                 this.showCreationForm = false
             }
+        },
+        onPagination(page) {
+            this.page.currentPage = page
+        },
+        onMdPageSize(pageSize) {
+            const previousPageSize = this.page.pageSize
+            const newPage = Math.floor((this.page.currentPage - 1) * previousPageSize / pageSize) + 1
+            this.page.pageSize = pageSize
+            this.page.currentPage = newPage
         }
     },
     async created() {
