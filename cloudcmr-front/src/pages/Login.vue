@@ -1,43 +1,85 @@
 <template>
-    <form novalidate id="login-form" class="centered-container" @submit.prevent="handleLogin">
-        <md-content class="md-elevation-3">
+    <v-app>
+        <v-main>
+            <v-container class="centered-container fill-height" fluid>
+                <v-row align="center" class="visible" justify="center">
+                    <v-col cols="12" sm="8" md="3">
+                        <v-card class="elevation-12">
+                            <div class="title">
+                                <img src="@/assets/logo.png">
+                                <div class="text-h4">Cloud CMR</div>
+                                <div class="text-subtitle-1">Page de connexion</div>
+                            </div>
+                            <v-card-text>
+                                <v-form>
+                                    <div class="md-invalid" v-if="errorMessage">
+                                        <span class="md-error">{{ errorMessage }}</span>
+                                    </div>
+                                    <v-text-field
+                                        label="E-mail"
+                                        v-model="form.email"
+                                        type="text"
+                                        :error-messages="emailErrors"
+                                        @input="$v.form.email.$touch()"
+                                        @blur="$v.form.email.$touch()"
+                                        required
+                                    ></v-text-field>
 
-            <div class="title">
-                <img src="@/assets/logo.png">
-                <div class="md-title">Cloud CMR</div>
-                <div class="md-body-1">Page de connexion</div>
-            </div>
+                                    <v-text-field
+                                        id="password"
+                                        label="Mot de passe"
+                                        v-model="form.password"
+                                        :error-messages="passwordErrors"
+                                        @input="$v.form.password.$touch()"
+                                        @blur="$v.form.password.$touch()"
+                                        type="password"
+                                        required
+                                    ></v-text-field>
+                                </v-form>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn @click="handleLogin" :loading="loading" x-large color="primary">Se connecter
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-col>
+                </v-row>
+                <div class="background"/>
+            </v-container>
 
-            <div class="form">
-                <div class="md-invalid" v-if="errorMessage">
-                    <span class="md-error">{{errorMessage}}</span>
-                </div>
-                <md-field :class="getValidationClass('email')">
-                    <label for='email'>E-mail</label>
-                    <md-input id='email' v-model="loginForm.email" autofocus></md-input>
-                    <span class="md-error" v-if="!$v.loginForm.email.required">L'email est obligatoire</span>
-                    <span class="md-error" v-else-if="!$v.loginForm.email.email">Format de l'email incorrect</span>
-                </md-field>
+            <!--            <div class="form">-->
+            <!--                            <div class="md-invalid" v-if="errorMessage">-->
+            <!--                                <span class="md-error">{{errorMessage}}</span>-->
+            <!--                            </div>-->
+            <!--                <md-field :class="getValidationClass('email')">-->
+            <!--                    <label for='email'>E-mail</label>-->
+            <!--                    <md-input id='email' v-model="form.email" autofocus></md-input>-->
+            <!--                    <span class="md-error" v-if="!$v.form.email.required">L'email est obligatoire</span>-->
+            <!--                    <span class="md-error" v-else-if="!$v.form.email.email">Format de l'email incorrect</span>-->
+            <!--                </md-field>-->
 
-                <md-field md-has-password :class="getValidationClass('password')">
-                    <label for='password'>Mot de passe</label>
-                    <md-input id="password" v-model="loginForm.password" type="password"></md-input>
-                    <span class="md-error" v-if="!$v.loginForm.password.required">Le mot de passe est obligatoire</span>
-                    <span class="md-error" v-else-if="!$v.loginForm.password.minLength">La taille du mot de passe doit être supérieur à 6 caractères</span>
-                </md-field>
-            </div>
+            <!--                <md-field md-has-password :class="getValidationClass('password')">-->
+            <!--                    <label for='password'>Mot de passe</label>-->
+            <!--                    <md-input id="password" v-model="form.password" type="password"></md-input>-->
+            <!--                    <span class="md-error" v-if="!$v.form.password.required">Le mot de passe est obligatoire</span>-->
+            <!--                    <span class="md-error" v-else-if="!$v.form.password.minLength">La taille du mot de passe doit être supérieur à 6 caractères</span>-->
+            <!--                </md-field>-->
+            <!--            </div>-->
 
-            <div class="md-layout md-alignment-center-right">
-                <md-button type="submit" class="md-raised md-primary">Se connecter</md-button>
-            </div>
+            <!--            <div class="md-layout md-alignment-center-right">-->
+            <!--                <md-button type="submit" class="md-raised md-primary">Se connecter</md-button>-->
+            <!--            </div>-->
 
-            <div class="loading-overlay" v-if="loading">
-                <md-progress-spinner md-mode="indeterminate" :md-stroke="2"></md-progress-spinner>
-            </div>
+            <!--            <div class="loading-overlay" v-if="loading">-->
+            <!--                <md-progress-spinner md-mode="indeterminate" :md-stroke="2"></md-progress-spinner>-->
+            <!--            </div>-->
 
-        </md-content>
-        <div class="background"/>
-    </form>
+            <!--        </v-container>-->
+            <!--        <div class="background"/>-->
+            <!--    </form>-->
+        </v-main>
+    </v-app>
 </template>
 
 <script>
@@ -46,128 +88,141 @@ import { validationMixin } from 'vuelidate'
 import { email, minLength, required } from 'vuelidate/lib/validators'
 
 export default {
-        name: 'Login',
-        mixins: [validationMixin],
-        data: () => ({
-            loading: false,
-            loginForm: {
-                email: '',
-                password: ''
+    name: 'Login',
+    mixins: [validationMixin],
+    data: () => ({
+        loading: false,
+        form: {
+            email: '',
+            password: ''
+        },
+        errorMessage: null
+    }),
+    validations: {
+        form: {
+            email: {
+                required,
+                email
             },
-            errorMessage: null
-        }),
-        validations: {
-            loginForm: {
-                email: {
-                    required,
-                    email
-                },
-                password: {
-                    required,
-                    minLength: minLength(6)
-                }
+            password: {
+                required,
+                minLength: minLength(6)
             }
+        }
+    },
+    created() {
+        this.logout()
+    },
+    computed: {
+        emailErrors() {
+            const errors = []
+            if (!this.$v.form.email.$dirty) return errors
+            !this.$v.form.email.required && errors.push('L\'email est obligatoire')
+            !this.$v.form.email.email && errors.push('Format de l\'email incorrect')
+            return errors
         },
-        created() {
-            this.logout()
-        },
-        methods: {
-            ...mapActions('account', ['login', 'logout']),
-            getValidationClass(fieldName) {
-                const field = this.$v.loginForm[fieldName]
-                if (field) {
-                    return {
-                        'md-invalid': field.$invalid && field.$dirty
+        passwordErrors() {
+            const errors = []
+            if (!this.$v.form.password.$dirty) return errors
+            !this.$v.form.password.required && errors.push('Le mot de passe est obligatoire')
+            !this.$v.form.password.minLength && errors.push('La taille du mot de passe doit être supérieure à 6 caractères')
+            return errors
+        }
+    },
+    methods: {
+        ...mapActions('account', ['login', 'logout']),
+        auth() {
+            this.loading = true
+            const { email, password } = this.form
+            this.login({ email, password })
+                .then(() => this.$router.replace(this.$route.query.from || '/'))
+                .catch(err => {
+                    this.loading = false
+                    if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                        this.errorMessage = 'Votre couple email/mot de passe est incorrect'
+                    } else {
+                        this.errorMessage = 'Une erreur est survenue, merci de réessayer plus tard'
                     }
-                }
-            },
-            auth() {
-                this.loading = true
-                const { email, password } = this.loginForm
-                this.login({ email, password })
-                    .then(() => this.$router.replace(this.$route.query.from || '/'))
-                    .catch(err => {
-                        this.loading = false
-                        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-                            this.errorMessage = 'Votre couple email/mot de passe est incorrect'
-                        } else {
-                            this.errorMessage = 'Une erreur est survenue, merci de réessayer plus tard'
-                        }
-                    })
-            },
-            handleLogin() {
-                this.$v.$touch()
+                })
+        },
+        handleLogin() {
+            this.$v.$touch()
 
-                if (!this.$v.$invalid) {
-                    this.auth()
-                }
+            if (!this.$v.$invalid) {
+                this.auth()
             }
         }
     }
+}
 </script>
 
 <style lang="scss">
-    .centered-container {
+.centered-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    height: 100vh;
+
+    .visible {
+        z-index: 1;
+    }
+
+    .title {
+        padding-top: 30px;
+        text-align: center;
+        margin-bottom: 30px;
+
+        img {
+            margin-bottom: 16px;
+            max-width: 80px;
+        }
+    }
+
+    .form {
+        margin-bottom: 60px;
+    }
+
+    .background {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjEwODAiPgogIDxwYXRoIGZpbGw9IiNmM2YzZjMiIHN0cm9rZT0iI2YzZjNmMyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQ0LTQ5Nmw2MjcgMTY3IDI1OSA2eiIvPgogIDxwYXRoIGZpbGw9IiNlM2UzZTMiIHN0cm9rZT0iI2UzZTNlMyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNDczIDE1MjZsLTcxMCAxNDQgMTU0OS02NHoiLz4KICA8cGF0aCBmaWxsPSIjZWVlIiBzdHJva2U9IiNlZWUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEwMzAtMzIzaDU5MWwzODMtMTU5eiIvPgogIDxwYXRoIGZpbGw9IiNmMWYxZjEiIHN0cm9rZT0iI2YxZjFmMSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQ0LTQ5Nmw4ODYgMTczIDk3NC0xNTl6Ii8+CiAgPHBhdGggZmlsbD0iI2UwZTBlMCIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMjMxIDQ5NWwtNjIgMjA1IDEwNCAzMTJ6Ii8+CiAgPHBhdGggZmlsbD0iI2U2ZTZlNiIgc3Ryb2tlPSIjZTZlNmU2IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xOTc4LTQybDI1MyA1MzcgNjEtNzQ1eiIvPgogIDxwYXRoIGZpbGw9IiNlZmVmZWYiIHN0cm9rZT0iI2VmZWZlZiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQ0LTQ5NmwxODYwIDE0IDUzNC05MnoiLz4KICA8cGF0aCBmaWxsPSIjZjVmNWY1IiBzdHJva2U9IiNmNWY1ZjUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS01OTgtNTYxbDc0MiA2NSAyMzk0LTc4eiIvPgogIDxwYXRoIGZpbGw9IiNlMGUwZTAiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMjI3MyAxMDEybC0xOSA0NDkgMjg0LTIwMzV6Ii8+CiAgPHBhdGggZmlsbD0iI2VhZWFlYSIgc3Ryb2tlPSIjZWFlYWVhIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMDA0LTQ4MmwyODggMjMyIDI0Ni0zMjR6Ii8+CiAgPHBhdGggZmlsbD0iI2U2ZTZlNiIgc3Ryb2tlPSIjZTZlNmU2IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMjkyLTI1MGwtNjEgNzQ1IDMwNy0xMDY5eiIvPgogIDxwYXRoIGZpbGw9IiNlM2UzZTMiIHN0cm9rZT0iI2UzZTNlMyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMjIzMSA0OTVsNDIgNTE3IDI2NS0xNTg2eiIvPgogIDxwYXRoIGZpbGw9IiNkZGQiIHN0cm9rZT0iI2RkZCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTg0OSAxMDAzbC0xMDMgNDEyIDIyOSAxNDF6Ii8+CiAgPHBhdGggZmlsbD0iI2U0ZTRlNCIgc3Ryb2tlPSIjZTRlNGU0IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xOTc4LTQybC05MyA1MzAgMzQ2IDd6Ii8+CiAgPHBhdGggZmlsbD0iI2RjZGNkYyIgc3Ryb2tlPSIjZGNkY2RjIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xODQ5IDEwMDNsMTI2IDU1MyAyNzktOTV6Ii8+CiAgPHBhdGggZmlsbD0iI2RkZCIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xODQ5IDEwMDNsNDA1IDQ1OCAxOS00NDl6Ii8+CiAgPHBhdGggZmlsbD0iI2RmZGZkZiIgc3Ryb2tlPSIjZGZkZmRmIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMTY5IDcwMGwtMzIwIDMwMyA0MjQgOXoiLz4KICA8cGF0aCBmaWxsPSIjZWFlYWVhIiBzdHJva2U9IiNlYWVhZWEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTIwMDQtNDgybC0yNiA0NDAgMzE0LTIwOHoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE4ODUgNDg4bDI4NCAyMTIgNjItMjA1eiIvPgogIDxwYXRoIGZpbGw9IiNlMmUyZTIiIHN0cm9rZT0iI2UyZTJlMiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTg4NSA0ODhsLTgzIDEzMyAzNjcgNzl6Ii8+CiAgPHBhdGggZmlsbD0iI2UxZTFlMSIgc3Ryb2tlPSIjZTFlMWUxIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xODAyIDYyMWw0NyAzODIgMzIwLTMwM3oiLz4KICA8cGF0aCBmaWxsPSIjZGZkZmRmIiBzdHJva2U9IiNkZmRmZGYiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2ODUgMTEzOWw2MSAyNzYgMTAzLTQxMnoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE4MDIgNjIxbC02MiA2OCAxMDkgMzE0eiIvPgogIDxwYXRoIGZpbGw9IiNkY2RjZGMiIHN0cm9rZT0iI2RjZGNkYyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTc0NiAxNDE1bC00MzQgMTkxIDY2My01MHoiLz4KICA8cGF0aCBmaWxsPSIjZTdlN2U3IiBzdHJva2U9IiNlN2U3ZTciIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2MTcgMTcybDI2OCAzMTYgOTMtNTMweiIvPgogIDxwYXRoIGZpbGw9IiNlYmViZWIiIHN0cm9rZT0iI2ViZWJlYiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTYyMS0zMjNsMzU3IDI4MSAyNi00NDB6Ii8+CiAgPHBhdGggZmlsbD0iI2VhZWFlYSIgc3Ryb2tlPSIjZWFlYWVhIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xNjIxLTMyM2wtNCA0OTUgMzYxLTIxNHoiLz4KICA8cGF0aCBmaWxsPSIjZWJlYmViIiBzdHJva2U9IiNlYmViZWIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE0MTAtNDlsMjA3IDIyMSA0LTQ5NXoiLz4KICA8cGF0aCBmaWxsPSIjZTVlNWU1IiBzdHJva2U9IiNlNWU1ZTUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2MTcgMTcybDE4NSA0NDkgODMtMTMzeiIvPgogIDxwYXRoIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iI2U1ZTVlNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTYxNyAxNzJsMTIzIDUxNyA2Mi02OHoiLz4KICA8cGF0aCBmaWxsPSIjZTFlMWUxIiBzdHJva2U9IiNlMWUxZTEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE3NDAgNjg5bC01NSA0NTAgMTY0LTEzNnoiLz4KICA8cGF0aCBmaWxsPSIjZTZlNmU2IiBzdHJva2U9IiNlNmU2ZTYiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2MTcgMTcybC0zOTMgNDUxIDUxNiA2NnoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyNDQgOTYybDQ0MSAxNzcgNTUtNDUweiIvPgogIDxwYXRoIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iI2U1ZTVlNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTIyNCA2MjNsMjAgMzM5IDQ5Ni0yNzN6Ii8+CiAgPHBhdGggZmlsbD0iI2RmZGZkZiIgc3Ryb2tlPSIjZGZkZmRmIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xNjg1IDExMzlsLTM3MyA0NjcgNDM0LTE5MXoiLz4KICA8cGF0aCBmaWxsPSIjZTFlMWUxIiBzdHJva2U9IiNlMWUxZTEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyNDQgOTYybDY4IDY0NCAzNzMtNDY3eiIvPgogIDxwYXRoIGZpbGw9IiNlYWVhZWEiIHN0cm9rZT0iI2VhZWFlYSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQxMC00OWwtMzQyIDE3NSA1NDkgNDZ6Ii8+CiAgPHBhdGggZmlsbD0iI2U5ZTllOSIgc3Ryb2tlPSIjZTllOWU5IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDY4IDEyNmwxNTYgNDk3IDM5My00NTF6Ii8+CiAgPHBhdGggZmlsbD0iI2VkZWRlZCIgc3Ryb2tlPSIjZWRlZGVkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDMwLTMyM2wzODAgMjc0IDIxMS0yNzR6Ii8+CiAgPHBhdGggZmlsbD0iI2VhZWFlYSIgc3Ryb2tlPSIjZWFlYWVhIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDY4IDEyNmwtNzkgODIgMjM1IDQxNXoiLz4KICA8cGF0aCBmaWxsPSIjZTRlNGU0IiBzdHJva2U9IiNlNGU0ZTQiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTkzNyA5NjJsLTE4NSA0MDkgNDkyLTQwOXoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyNDQgOTYybC00OTIgNDA5IDU2MCAyMzV6Ii8+CiAgPHBhdGggZmlsbD0iI2VkZWRlZCIgc3Ryb2tlPSIjZWRlZGVkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDMwLTMyM2wzOCA0NDkgMzQyLTE3NXoiLz4KICA8cGF0aCBmaWxsPSIjZTVlNWU1IiBzdHJva2U9IiNlNWU1ZTUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyMjQgNjIzTDkzNyA5NjJoMzA3eiIvPgogIDxwYXRoIGZpbGw9IiNlMmUyZTIiIHN0cm9rZT0iI2UyZTJlMiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzUyIDEzNzFsLTI3OSAxNTUgODM5IDgweiIvPgogIDxwYXRoIGZpbGw9IiNlYWVhZWEiIHN0cm9rZT0iI2VhZWFlYSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNOTg5IDIwOEw3ODMgNDAxbDQ0MSAyMjJ6Ii8+CiAgPHBhdGggZmlsbD0iI2U3ZTdlNyIgc3Ryb2tlPSIjZTdlN2U3IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik03NDggNzg5bDE4OSAxNzMgMjg3LTMzOXoiLz4KICA8cGF0aCBmaWxsPSIjZTllOWU5IiBzdHJva2U9IiNlOWU5ZTkiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTc4MyA0MDFsLTM1IDM4OCA0NzYtMTY2eiIvPgogIDxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iI2YwZjBmMCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzcxLTMyOWwtMTIgNDU0IDI3MS00NDh6Ii8+CiAgPHBhdGggZmlsbD0iI2VlZSIgc3Ryb2tlPSIjZWVlIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDMwLTMyM0w3NTkgMTI1bDMwOSAxeiIvPgogIDxwYXRoIGZpbGw9IiNlY2VjZWMiIHN0cm9rZT0iI2VjZWNlYyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzU5IDEyNWwyMzAgODMgNzktODJ6Ii8+CiAgPHBhdGggZmlsbD0iI2U1ZTVlNSIgc3Ryb2tlPSIjZTVlNWU1IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik00ODEgMTEwNWwyNzEgMjY2IDE4NS00MDl6Ii8+CiAgPHBhdGggZmlsbD0iI2VjZWNlYyIgc3Ryb2tlPSIjZWNlY2VjIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik03NTkgMTI1bDI0IDI3NiAyMDYtMTkzeiIvPgogIDxwYXRoIGZpbGw9IiNlN2U3ZTciIHN0cm9rZT0iI2U3ZTdlNyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzQ4IDc4OWwtMjY3IDMxNiA0NTYtMTQzeiIvPgogIDxwYXRoIGZpbGw9IiNlOGU4ZTgiIHN0cm9rZT0iI2U4ZThlOCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNTE5IDc4MmwtMzggMzIzIDI2Ny0zMTZ6Ii8+CiAgPHBhdGggZmlsbD0iI2YxZjFmMSIgc3Ryb2tlPSIjZjFmMWYxIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0zMzUtMTQ4bDQyNCAyNzMgMTItNDU0eiIvPgogIDxwYXRoIGZpbGw9IiNmNGY0ZjQiIHN0cm9rZT0iI2Y0ZjRmNCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTcyLTQyOGwxNjMgMjgwIDQzNi0xODF6Ii8+CiAgPHBhdGggZmlsbD0iI2Y2ZjZmNiIgc3Ryb2tlPSIjZjZmNmY2IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xNDQtNDk2bDI4IDY4IDU5OSA5OXoiLz4KICA8cGF0aCBmaWxsPSIjZWFlYWVhIiBzdHJva2U9IiNlYWVhZWEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTUxOSA3ODJsMjI5IDcgMzUtMzg4eiIvPgogIDxwYXRoIGZpbGw9IiNlZWUiIHN0cm9rZT0iI2VlZSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzU5IDEyNUwyMDIgMjU5bDU4MSAxNDJ6Ii8+CiAgPHBhdGggZmlsbD0iI2VjZWNlYyIgc3Ryb2tlPSIjZWNlY2VjIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMDIgMjU5bDMxNyA1MjMgMjY0LTM4MXoiLz4KICA8cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiNmMGYwZjAiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTMzNS0xNDhMMjAyIDI1OWw1NTctMTM0eiIvPgogIDxwYXRoIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iI2U1ZTVlNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNDgxIDExMDVsLTggNDIxIDI3OS0xNTV6Ii8+CiAgPHBhdGggZmlsbD0iI2U4ZThlOCIgc3Ryb2tlPSIjZThlOGU4IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tMTc5IDEwNDZsNjUyIDQ4MCA4LTQyMXoiLz4KICA8cGF0aCBmaWxsPSIjZWNlY2VjIiBzdHJva2U9IiNlY2VjZWMiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS01IDU5M2wtMTc0IDQ1MyA2NjAgNTl6Ii8+CiAgPHBhdGggZmlsbD0iI2ViZWJlYiIgc3Ryb2tlPSIjZWJlYmViIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNSA1OTNsNDg2IDUxMiAzOC0zMjN6Ii8+CiAgPHBhdGggZmlsbD0iI2VlZSIgc3Ryb2tlPSIjZWVlIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMDIgMjU5TC01IDU5M2w1MjQgMTg5eiIvPgogIDxwYXRoIGZpbGw9IiNlOGU4ZTgiIHN0cm9rZT0iI2U4ZThlOCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTE3OSAxMDQ2bC01OCA2MjQgNzEwLTE0NHoiLz4KICA8cGF0aCBmaWxsPSIjZjNmM2YzIiBzdHJva2U9IiNmM2YzZjMiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS0xMDktMjNsMzExIDI4MiAxMzMtNDA3eiIvPgogIDxwYXRoIGZpbGw9IiNmNWY1ZjUiIHN0cm9rZT0iI2Y1ZjVmNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTcyLTQyOEwtMTA5LTIzbDQ0NC0xMjV6Ii8+CiAgPHBhdGggZmlsbD0iI2VlZSIgc3Ryb2tlPSIjZWVlIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tMjQ1IDc3Mmw2NiAyNzRMLTUgNTkzeiIvPgogIDxwYXRoIGZpbGw9IiNmMWYxZjEiIHN0cm9rZT0iI2YxZjFmMSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTk2IDI5N2w5MSAyOTYgMjA3LTMzNHoiLz4KICA8cGF0aCBmaWxsPSIjZjNmM2YzIiBzdHJva2U9IiNmM2YzZjMiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS0xMDktMjNsMTMgMzIwIDI5OC0zOHoiLz4KICA8cGF0aCBmaWxsPSIjZjdmN2Y3IiBzdHJva2U9IiNmN2Y3ZjciIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE0NC00OTZMLTEwOS0yM2wyODEtNDA1eiIvPgogIDxwYXRoIGZpbGw9IiNmOWY5ZjkiIHN0cm9rZT0iI2Y5ZjlmOSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU5OC01NjFsNDg5IDUzOCAyNTMtNDczeiIvPgogIDxwYXRoIGZpbGw9IiNlYmViZWIiIHN0cm9rZT0iI2ViZWJlYiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU1NCAxMzkybDMxNyAyNzggNTgtNjI0eiIvPgogIDxwYXRoIGZpbGw9IiNmNGY0ZjQiIHN0cm9rZT0iI2Y0ZjRmNCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTEwOS0yM2wtMjQ4IDE1MSAyNjEgMTY5eiIvPgogIDxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iI2YwZjBmMCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTk2IDI5N2wtMTQ5IDQ3NUwtNSA1OTN6Ii8+CiAgPHBhdGggZmlsbD0iI2VkZWRlZCIgc3Ryb2tlPSIjZWRlZGVkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNTUwIDExODFsLTQgMjExIDM3NS0zNDZ6Ii8+CiAgPHBhdGggZmlsbD0iI2Y4ZjhmOCIgc3Ryb2tlPSIjZjhmOGY4IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNTk4LTU2MWwyNDEgNjg5IDI0OC0xNTF6Ii8+CiAgPHBhdGggZmlsbD0iI2YyZjJmMiIgc3Ryb2tlPSIjZjJmMmYyIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNDM1IDIwN2wxOTAgNTY1IDE0OS00NzV6Ii8+CiAgPHBhdGggZmlsbD0iI2Y0ZjRmNCIgc3Ryb2tlPSIjZjRmNGY0IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tMzU3IDEyOGwtNzggNzkgMzM5IDkweiIvPgogIDxwYXRoIGZpbGw9IiNlZWUiIHN0cm9rZT0iI2VlZSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTI0NSA3NzJsLTMwNSA0MDkgMzcxLTEzNXoiLz4KICA8cGF0aCBmaWxsPSIjZjFmMWYxIiBzdHJva2U9IiNmMWYxZjEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS00MzUgMjA3bC0xMTUgOTc0IDMwNS00MDl6Ii8+CiAgPHBhdGggZmlsbD0iI2Y4ZjhmOCIgc3Ryb2tlPSIjZjhmOGY4IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNTk4LTU2MWwxNjMgNzY4IDc4LTc5eiIvPgogIDxwYXRoIGZpbGw9IiNmNWY1ZjUiIHN0cm9rZT0iI2Y1ZjVmNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU5OC01NjFsNDggMTc0MiAxMTUtOTc0eiIvPgogIDxwYXRoIGZpbGw9IiNmMmYyZjIiIHN0cm9rZT0iI2YyZjJmMiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU5OC01NjFsNDQgMTk1MyA0LTIxMXoiLz4KPC9zdmc+Cg==);
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        z-index: 0;
+    }
+
+    .md-content {
+        z-index: 1;
+        padding: 40px;
+        width: 100%;
+        max-width: 400px;
+        position: relative;
+    }
+
+    div.md-invalid {
+        height: 3vh;
+    }
+
+    div.md-invalid .md-error {
+        color: red;
+    }
+
+    .loading-overlay {
+        z-index: 10;
+        top: 0;
+        left: 0;
+        right: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
-        height: 100vh;
-
-        .title {
-            text-align: center;
-            margin-bottom: 30px;
-
-            img {
-                margin-bottom: 16px;
-                max-width: 80px;
-            }
-        }
-
-        .form {
-            margin-bottom: 60px;
-        }
-
-        .background {
-            background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjEwODAiPgogIDxwYXRoIGZpbGw9IiNmM2YzZjMiIHN0cm9rZT0iI2YzZjNmMyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQ0LTQ5Nmw2MjcgMTY3IDI1OSA2eiIvPgogIDxwYXRoIGZpbGw9IiNlM2UzZTMiIHN0cm9rZT0iI2UzZTNlMyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNDczIDE1MjZsLTcxMCAxNDQgMTU0OS02NHoiLz4KICA8cGF0aCBmaWxsPSIjZWVlIiBzdHJva2U9IiNlZWUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEwMzAtMzIzaDU5MWwzODMtMTU5eiIvPgogIDxwYXRoIGZpbGw9IiNmMWYxZjEiIHN0cm9rZT0iI2YxZjFmMSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQ0LTQ5Nmw4ODYgMTczIDk3NC0xNTl6Ii8+CiAgPHBhdGggZmlsbD0iI2UwZTBlMCIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMjMxIDQ5NWwtNjIgMjA1IDEwNCAzMTJ6Ii8+CiAgPHBhdGggZmlsbD0iI2U2ZTZlNiIgc3Ryb2tlPSIjZTZlNmU2IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xOTc4LTQybDI1MyA1MzcgNjEtNzQ1eiIvPgogIDxwYXRoIGZpbGw9IiNlZmVmZWYiIHN0cm9rZT0iI2VmZWZlZiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQ0LTQ5NmwxODYwIDE0IDUzNC05MnoiLz4KICA8cGF0aCBmaWxsPSIjZjVmNWY1IiBzdHJva2U9IiNmNWY1ZjUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS01OTgtNTYxbDc0MiA2NSAyMzk0LTc4eiIvPgogIDxwYXRoIGZpbGw9IiNlMGUwZTAiIHN0cm9rZT0iI2UwZTBlMCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMjI3MyAxMDEybC0xOSA0NDkgMjg0LTIwMzV6Ii8+CiAgPHBhdGggZmlsbD0iI2VhZWFlYSIgc3Ryb2tlPSIjZWFlYWVhIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMDA0LTQ4MmwyODggMjMyIDI0Ni0zMjR6Ii8+CiAgPHBhdGggZmlsbD0iI2U2ZTZlNiIgc3Ryb2tlPSIjZTZlNmU2IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMjkyLTI1MGwtNjEgNzQ1IDMwNy0xMDY5eiIvPgogIDxwYXRoIGZpbGw9IiNlM2UzZTMiIHN0cm9rZT0iI2UzZTNlMyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMjIzMSA0OTVsNDIgNTE3IDI2NS0xNTg2eiIvPgogIDxwYXRoIGZpbGw9IiNkZGQiIHN0cm9rZT0iI2RkZCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTg0OSAxMDAzbC0xMDMgNDEyIDIyOSAxNDF6Ii8+CiAgPHBhdGggZmlsbD0iI2U0ZTRlNCIgc3Ryb2tlPSIjZTRlNGU0IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xOTc4LTQybC05MyA1MzAgMzQ2IDd6Ii8+CiAgPHBhdGggZmlsbD0iI2RjZGNkYyIgc3Ryb2tlPSIjZGNkY2RjIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xODQ5IDEwMDNsMTI2IDU1MyAyNzktOTV6Ii8+CiAgPHBhdGggZmlsbD0iI2RkZCIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xODQ5IDEwMDNsNDA1IDQ1OCAxOS00NDl6Ii8+CiAgPHBhdGggZmlsbD0iI2RmZGZkZiIgc3Ryb2tlPSIjZGZkZmRmIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMTY5IDcwMGwtMzIwIDMwMyA0MjQgOXoiLz4KICA8cGF0aCBmaWxsPSIjZWFlYWVhIiBzdHJva2U9IiNlYWVhZWEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTIwMDQtNDgybC0yNiA0NDAgMzE0LTIwOHoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE4ODUgNDg4bDI4NCAyMTIgNjItMjA1eiIvPgogIDxwYXRoIGZpbGw9IiNlMmUyZTIiIHN0cm9rZT0iI2UyZTJlMiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTg4NSA0ODhsLTgzIDEzMyAzNjcgNzl6Ii8+CiAgPHBhdGggZmlsbD0iI2UxZTFlMSIgc3Ryb2tlPSIjZTFlMWUxIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xODAyIDYyMWw0NyAzODIgMzIwLTMwM3oiLz4KICA8cGF0aCBmaWxsPSIjZGZkZmRmIiBzdHJva2U9IiNkZmRmZGYiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2ODUgMTEzOWw2MSAyNzYgMTAzLTQxMnoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE4MDIgNjIxbC02MiA2OCAxMDkgMzE0eiIvPgogIDxwYXRoIGZpbGw9IiNkY2RjZGMiIHN0cm9rZT0iI2RjZGNkYyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTc0NiAxNDE1bC00MzQgMTkxIDY2My01MHoiLz4KICA8cGF0aCBmaWxsPSIjZTdlN2U3IiBzdHJva2U9IiNlN2U3ZTciIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2MTcgMTcybDI2OCAzMTYgOTMtNTMweiIvPgogIDxwYXRoIGZpbGw9IiNlYmViZWIiIHN0cm9rZT0iI2ViZWJlYiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTYyMS0zMjNsMzU3IDI4MSAyNi00NDB6Ii8+CiAgPHBhdGggZmlsbD0iI2VhZWFlYSIgc3Ryb2tlPSIjZWFlYWVhIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xNjIxLTMyM2wtNCA0OTUgMzYxLTIxNHoiLz4KICA8cGF0aCBmaWxsPSIjZWJlYmViIiBzdHJva2U9IiNlYmViZWIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE0MTAtNDlsMjA3IDIyMSA0LTQ5NXoiLz4KICA8cGF0aCBmaWxsPSIjZTVlNWU1IiBzdHJva2U9IiNlNWU1ZTUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2MTcgMTcybDE4NSA0NDkgODMtMTMzeiIvPgogIDxwYXRoIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iI2U1ZTVlNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTYxNyAxNzJsMTIzIDUxNyA2Mi02OHoiLz4KICA8cGF0aCBmaWxsPSIjZTFlMWUxIiBzdHJva2U9IiNlMWUxZTEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE3NDAgNjg5bC01NSA0NTAgMTY0LTEzNnoiLz4KICA8cGF0aCBmaWxsPSIjZTZlNmU2IiBzdHJva2U9IiNlNmU2ZTYiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE2MTcgMTcybC0zOTMgNDUxIDUxNiA2NnoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyNDQgOTYybDQ0MSAxNzcgNTUtNDUweiIvPgogIDxwYXRoIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iI2U1ZTVlNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTIyNCA2MjNsMjAgMzM5IDQ5Ni0yNzN6Ii8+CiAgPHBhdGggZmlsbD0iI2RmZGZkZiIgc3Ryb2tlPSIjZGZkZmRmIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xNjg1IDExMzlsLTM3MyA0NjcgNDM0LTE5MXoiLz4KICA8cGF0aCBmaWxsPSIjZTFlMWUxIiBzdHJva2U9IiNlMWUxZTEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyNDQgOTYybDY4IDY0NCAzNzMtNDY3eiIvPgogIDxwYXRoIGZpbGw9IiNlYWVhZWEiIHN0cm9rZT0iI2VhZWFlYSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTQxMC00OWwtMzQyIDE3NSA1NDkgNDZ6Ii8+CiAgPHBhdGggZmlsbD0iI2U5ZTllOSIgc3Ryb2tlPSIjZTllOWU5IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDY4IDEyNmwxNTYgNDk3IDM5My00NTF6Ii8+CiAgPHBhdGggZmlsbD0iI2VkZWRlZCIgc3Ryb2tlPSIjZWRlZGVkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDMwLTMyM2wzODAgMjc0IDIxMS0yNzR6Ii8+CiAgPHBhdGggZmlsbD0iI2VhZWFlYSIgc3Ryb2tlPSIjZWFlYWVhIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDY4IDEyNmwtNzkgODIgMjM1IDQxNXoiLz4KICA8cGF0aCBmaWxsPSIjZTRlNGU0IiBzdHJva2U9IiNlNGU0ZTQiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTkzNyA5NjJsLTE4NSA0MDkgNDkyLTQwOXoiLz4KICA8cGF0aCBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiNlMmUyZTIiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyNDQgOTYybC00OTIgNDA5IDU2MCAyMzV6Ii8+CiAgPHBhdGggZmlsbD0iI2VkZWRlZCIgc3Ryb2tlPSIjZWRlZGVkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDMwLTMyM2wzOCA0NDkgMzQyLTE3NXoiLz4KICA8cGF0aCBmaWxsPSIjZTVlNWU1IiBzdHJva2U9IiNlNWU1ZTUiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTEyMjQgNjIzTDkzNyA5NjJoMzA3eiIvPgogIDxwYXRoIGZpbGw9IiNlMmUyZTIiIHN0cm9rZT0iI2UyZTJlMiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzUyIDEzNzFsLTI3OSAxNTUgODM5IDgweiIvPgogIDxwYXRoIGZpbGw9IiNlYWVhZWEiIHN0cm9rZT0iI2VhZWFlYSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNOTg5IDIwOEw3ODMgNDAxbDQ0MSAyMjJ6Ii8+CiAgPHBhdGggZmlsbD0iI2U3ZTdlNyIgc3Ryb2tlPSIjZTdlN2U3IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik03NDggNzg5bDE4OSAxNzMgMjg3LTMzOXoiLz4KICA8cGF0aCBmaWxsPSIjZTllOWU5IiBzdHJva2U9IiNlOWU5ZTkiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTc4MyA0MDFsLTM1IDM4OCA0NzYtMTY2eiIvPgogIDxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iI2YwZjBmMCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzcxLTMyOWwtMTIgNDU0IDI3MS00NDh6Ii8+CiAgPHBhdGggZmlsbD0iI2VlZSIgc3Ryb2tlPSIjZWVlIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xMDMwLTMyM0w3NTkgMTI1bDMwOSAxeiIvPgogIDxwYXRoIGZpbGw9IiNlY2VjZWMiIHN0cm9rZT0iI2VjZWNlYyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzU5IDEyNWwyMzAgODMgNzktODJ6Ii8+CiAgPHBhdGggZmlsbD0iI2U1ZTVlNSIgc3Ryb2tlPSIjZTVlNWU1IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik00ODEgMTEwNWwyNzEgMjY2IDE4NS00MDl6Ii8+CiAgPHBhdGggZmlsbD0iI2VjZWNlYyIgc3Ryb2tlPSIjZWNlY2VjIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik03NTkgMTI1bDI0IDI3NiAyMDYtMTkzeiIvPgogIDxwYXRoIGZpbGw9IiNlN2U3ZTciIHN0cm9rZT0iI2U3ZTdlNyIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzQ4IDc4OWwtMjY3IDMxNiA0NTYtMTQzeiIvPgogIDxwYXRoIGZpbGw9IiNlOGU4ZTgiIHN0cm9rZT0iI2U4ZThlOCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNTE5IDc4MmwtMzggMzIzIDI2Ny0zMTZ6Ii8+CiAgPHBhdGggZmlsbD0iI2YxZjFmMSIgc3Ryb2tlPSIjZjFmMWYxIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0zMzUtMTQ4bDQyNCAyNzMgMTItNDU0eiIvPgogIDxwYXRoIGZpbGw9IiNmNGY0ZjQiIHN0cm9rZT0iI2Y0ZjRmNCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTcyLTQyOGwxNjMgMjgwIDQzNi0xODF6Ii8+CiAgPHBhdGggZmlsbD0iI2Y2ZjZmNiIgc3Ryb2tlPSIjZjZmNmY2IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0xNDQtNDk2bDI4IDY4IDU5OSA5OXoiLz4KICA8cGF0aCBmaWxsPSIjZWFlYWVhIiBzdHJva2U9IiNlYWVhZWEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTUxOSA3ODJsMjI5IDcgMzUtMzg4eiIvPgogIDxwYXRoIGZpbGw9IiNlZWUiIHN0cm9rZT0iI2VlZSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNzU5IDEyNUwyMDIgMjU5bDU4MSAxNDJ6Ii8+CiAgPHBhdGggZmlsbD0iI2VjZWNlYyIgc3Ryb2tlPSIjZWNlY2VjIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMDIgMjU5bDMxNyA1MjMgMjY0LTM4MXoiLz4KICA8cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiNmMGYwZjAiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTMzNS0xNDhMMjAyIDI1OWw1NTctMTM0eiIvPgogIDxwYXRoIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iI2U1ZTVlNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNNDgxIDExMDVsLTggNDIxIDI3OS0xNTV6Ii8+CiAgPHBhdGggZmlsbD0iI2U4ZThlOCIgc3Ryb2tlPSIjZThlOGU4IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tMTc5IDEwNDZsNjUyIDQ4MCA4LTQyMXoiLz4KICA8cGF0aCBmaWxsPSIjZWNlY2VjIiBzdHJva2U9IiNlY2VjZWMiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS01IDU5M2wtMTc0IDQ1MyA2NjAgNTl6Ii8+CiAgPHBhdGggZmlsbD0iI2ViZWJlYiIgc3Ryb2tlPSIjZWJlYmViIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNSA1OTNsNDg2IDUxMiAzOC0zMjN6Ii8+CiAgPHBhdGggZmlsbD0iI2VlZSIgc3Ryb2tlPSIjZWVlIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0yMDIgMjU5TC01IDU5M2w1MjQgMTg5eiIvPgogIDxwYXRoIGZpbGw9IiNlOGU4ZTgiIHN0cm9rZT0iI2U4ZThlOCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTE3OSAxMDQ2bC01OCA2MjQgNzEwLTE0NHoiLz4KICA8cGF0aCBmaWxsPSIjZjNmM2YzIiBzdHJva2U9IiNmM2YzZjMiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS0xMDktMjNsMzExIDI4MiAxMzMtNDA3eiIvPgogIDxwYXRoIGZpbGw9IiNmNWY1ZjUiIHN0cm9rZT0iI2Y1ZjVmNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNMTcyLTQyOEwtMTA5LTIzbDQ0NC0xMjV6Ii8+CiAgPHBhdGggZmlsbD0iI2VlZSIgc3Ryb2tlPSIjZWVlIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tMjQ1IDc3Mmw2NiAyNzRMLTUgNTkzeiIvPgogIDxwYXRoIGZpbGw9IiNmMWYxZjEiIHN0cm9rZT0iI2YxZjFmMSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTk2IDI5N2w5MSAyOTYgMjA3LTMzNHoiLz4KICA8cGF0aCBmaWxsPSIjZjNmM2YzIiBzdHJva2U9IiNmM2YzZjMiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS0xMDktMjNsMTMgMzIwIDI5OC0zOHoiLz4KICA8cGF0aCBmaWxsPSIjZjdmN2Y3IiBzdHJva2U9IiNmN2Y3ZjciIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTTE0NC00OTZMLTEwOS0yM2wyODEtNDA1eiIvPgogIDxwYXRoIGZpbGw9IiNmOWY5ZjkiIHN0cm9rZT0iI2Y5ZjlmOSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU5OC01NjFsNDg5IDUzOCAyNTMtNDczeiIvPgogIDxwYXRoIGZpbGw9IiNlYmViZWIiIHN0cm9rZT0iI2ViZWJlYiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU1NCAxMzkybDMxNyAyNzggNTgtNjI0eiIvPgogIDxwYXRoIGZpbGw9IiNmNGY0ZjQiIHN0cm9rZT0iI2Y0ZjRmNCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTEwOS0yM2wtMjQ4IDE1MSAyNjEgMTY5eiIvPgogIDxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iI2YwZjBmMCIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTk2IDI5N2wtMTQ5IDQ3NUwtNSA1OTN6Ii8+CiAgPHBhdGggZmlsbD0iI2VkZWRlZCIgc3Ryb2tlPSIjZWRlZGVkIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNTUwIDExODFsLTQgMjExIDM3NS0zNDZ6Ii8+CiAgPHBhdGggZmlsbD0iI2Y4ZjhmOCIgc3Ryb2tlPSIjZjhmOGY4IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNTk4LTU2MWwyNDEgNjg5IDI0OC0xNTF6Ii8+CiAgPHBhdGggZmlsbD0iI2YyZjJmMiIgc3Ryb2tlPSIjZjJmMmYyIiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNDM1IDIwN2wxOTAgNTY1IDE0OS00NzV6Ii8+CiAgPHBhdGggZmlsbD0iI2Y0ZjRmNCIgc3Ryb2tlPSIjZjRmNGY0IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tMzU3IDEyOGwtNzggNzkgMzM5IDkweiIvPgogIDxwYXRoIGZpbGw9IiNlZWUiIHN0cm9rZT0iI2VlZSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTI0NSA3NzJsLTMwNSA0MDkgMzcxLTEzNXoiLz4KICA8cGF0aCBmaWxsPSIjZjFmMWYxIiBzdHJva2U9IiNmMWYxZjEiIHN0cm9rZS13aWR0aD0iMS41MSIgZD0iTS00MzUgMjA3bC0xMTUgOTc0IDMwNS00MDl6Ii8+CiAgPHBhdGggZmlsbD0iI2Y4ZjhmOCIgc3Ryb2tlPSIjZjhmOGY4IiBzdHJva2Utd2lkdGg9IjEuNTEiIGQ9Ik0tNTk4LTU2MWwxNjMgNzY4IDc4LTc5eiIvPgogIDxwYXRoIGZpbGw9IiNmNWY1ZjUiIHN0cm9rZT0iI2Y1ZjVmNSIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU5OC01NjFsNDggMTc0MiAxMTUtOTc0eiIvPgogIDxwYXRoIGZpbGw9IiNmMmYyZjIiIHN0cm9rZT0iI2YyZjJmMiIgc3Ryb2tlLXdpZHRoPSIxLjUxIiBkPSJNLTU5OC01NjFsNDQgMTk1MyA0LTIxMXoiLz4KPC9zdmc+Cg==);
-            position: absolute;
-            height: 100%;
-            width: 100%;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            z-index: 0;
-        }
-
-        .md-content {
-            z-index: 1;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            position: relative;
-        }
-
-        div.md-invalid {
-            height: 3vh;
-        }
-
-        div.md-invalid .md-error {
-            color: red;
-        }
-
-        .loading-overlay {
-            z-index: 10;
-            top: 0;
-            left: 0;
-            right: 0;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
     }
+}
 </style>

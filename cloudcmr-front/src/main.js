@@ -2,9 +2,6 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.min.css'
-import 'vue-material/dist/theme/default.css'
 import * as firebase from 'firebase'
 import axios from 'axios'
 import { userService } from '@/services/user.service'
@@ -28,18 +25,6 @@ axios.interceptors.response.use(function(response) {
         router.push({ name: 'login', query: { from: currentLocation } })
     }
 })
-
-Vue.use(VueMaterial)
-
-// change multiple options
-Vue.material = {
-    ...Vue.material,
-    locale: {
-        ...Vue.material.locale,
-        dateFormat: 'dd/MM/yyyy',
-        firstDayOfAWeek: 1
-    }
-}
 
 new Vue({
     router,
