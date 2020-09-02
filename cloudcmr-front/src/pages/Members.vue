@@ -174,10 +174,7 @@ export default {
             this.page.currentPage = page
         },
         onMdPageSize(pageSize) {
-            const previousPageSize = this.page.pageSize
-            const newPage = Math.floor((this.page.currentPage - 1) * previousPageSize / pageSize) + 1
             this.page.pageSize = pageSize
-            this.page.currentPage = newPage
         }
     },
     async created() {

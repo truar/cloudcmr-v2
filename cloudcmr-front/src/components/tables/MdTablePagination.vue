@@ -1,22 +1,21 @@
 <template>
     <div class="md-table-pagination">
-        <template v-if="mdPageOptions !== false">
-            <span class="md-table-pagination-label">{{ mdLabel }}</span>
+        <span class="md-table-pagination-label">{{ mdLabel }}</span>
 
-            <md-field>
-                <md-select :value="mdPageSize" md-dense md-class="md-pagination-select" @md-selected="setPageSize">
-                    <md-option v-for="amount in mdPageOptions" :key="amount" :value="amount">{{ amount }}</md-option>
-                </md-select>
-            </md-field>
-        </template>
+        <md-field>
+            <md-select :value="mdPageSize" md-dense md-class="md-pagination-select" @md-selected="setPageSize">
+                <md-option v-for="amount in mdPageOptions" :key="amount" :value="amount">{{ amount }}</md-option>
+            </md-select>
+        </md-field>
 
-        <span>{{ currentItemCount }}-{{ currentPageCount }} {{ mdSeparator }} {{ mdTotal }}</span>
+        <span class="md-table-pagination-information">{{ currentItemCount }}-{{ currentPageCount }} {{ mdSeparator }} {{ mdTotal }}</span>
 
         <md-button class="md-icon-button md-table-pagination-previous" @click="goToPrevious()" :disabled="mdPage === 1">
             <md-icon>keyboard_arrow_left</md-icon>
         </md-button>
 
-        <md-button class="md-icon-button md-table-pagination-next" @click="goToNext()" :disabled="currentPageCount >= mdTotal">
+        <md-button class="md-icon-button md-table-pagination-next" @click="goToNext()"
+                   :disabled="currentPageCount >= mdTotal">
             <md-icon>keyboard_arrow_right</md-icon>
         </md-button>
     </div>
@@ -25,7 +24,6 @@
 <script>
 export default {
     name: 'MdTablePagination',
-    inject: ['MdTable'],
     props: {
         mdPageSize: {
             type: [String, Number],
@@ -62,7 +60,10 @@ export default {
     },
     methods: {
         setPageSize(pageSize) {
+            const previousPageSize = this.mdPageSize
+            const newCurrentPage = Math.floor((this.mdPage - 1) * previousPageSize / pageSize) + 1
             this.$emit('update:mdPageSize', pageSize)
+            this.$emit('pagination', newCurrentPage)
         },
         goToPrevious() {
             this.$emit('pagination', this.mdPage - 1)
