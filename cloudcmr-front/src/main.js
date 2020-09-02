@@ -8,6 +8,7 @@ import 'vue-material/dist/theme/default.css'
 import * as firebase from 'firebase'
 import axios from 'axios'
 import { userService } from '@/services/user.service'
+import vuetify from './plugins/vuetify'
 
 Vue.config.productionTip = false
 
@@ -43,5 +44,6 @@ Vue.material = {
 new Vue({
     router,
     store,
+    vuetify,
     render: h => h(App)
 }).$mount('#app')

@@ -3,5 +3,8 @@ module.exports = {
     'assetsDir': 'static',
     'devServer': {
         'port': 8088
-    }
+    },
+    'transpileDependencies': [
+        'vuetify'
+    ]
 }

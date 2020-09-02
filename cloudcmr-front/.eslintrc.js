@@ -16,8 +16,8 @@ module.exports = {
         //     "switchCase": 1,
         //     "ignores": []
         // }],
-        "object-curly-spacing": ["warn", "always"],
-        "space-before-function-paren": ["error", "never"],
+        'object-curly-spacing': ['warn', 'always'],
+        'space-before-function-paren': ['error', 'never']
     },
     parserOptions: {
         parser: 'babel-eslint',
@@ -33,9 +33,9 @@ module.exports = {
             }
         },
         {
-            files: ["*.vue"],
+            files: ['*.vue'],
             rules: {
-                "indent": "off"
+                'indent': 'off'
             }
         },
         {

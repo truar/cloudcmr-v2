@@ -27,15 +27,15 @@
         SidebarItem
     },
     computed: {
-        isLoggedOut: function () {
+        isLoggedOut: function() {
             return !this.$store.getters.isLoggedIn
         },
-        principal: function () {
+        principal: function() {
             return this.$store.state.principal.email
         }
     },
     methods: {
-        handleToggle () {
+        handleToggle() {
             this.drawer = !this.drawer
         }
     },
