@@ -4,16 +4,16 @@
             <v-container class="centered-container fill-height" fluid>
                 <v-row align="center" class="visible" justify="center">
                     <v-col cols="12" sm="8" md="3">
-                        <v-card class="elevation-12">
-                            <div class="title">
-                                <img src="@/assets/logo.png">
-                                <div class="text-h4">Cloud CMR</div>
-                                <div class="text-subtitle-1">Page de connexion</div>
-                            </div>
-                            <v-card-text>
-                                <v-form>
-                                    <div class="md-invalid" v-if="errorMessage">
-                                        <span class="md-error">{{ errorMessage }}</span>
+                        <v-card class="elevation-12" :loading="loading">
+                            <v-form class="spaced" @submit.prevent="handleLogin">
+                                <div class="title">
+                                    <img src="@/assets/logo.png">
+                                    <div class="text-h4">Cloud CMR</div>
+                                    <div class="text-subtitle-1">Page de connexion</div>
+                                </div>
+                                <v-card-text>
+                                    <div class="v-invalid" v-if="errorMessage">
+                                        <span class="v-error">{{ errorMessage }}</span>
                                     </div>
                                     <v-text-field
                                         label="E-mail"
@@ -35,49 +35,21 @@
                                         type="password"
                                         required
                                     ></v-text-field>
-                                </v-form>
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer></v-spacer>
-                                <v-btn @click="handleLogin" :loading="loading" x-large color="primary">Se connecter
-                                </v-btn>
-                            </v-card-actions>
+                                </v-card-text>
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn type="submit"
+                                           :loading="loading"
+                                           x-large
+                                           color="primary">Se connecter
+                                    </v-btn>
+                                </v-card-actions>
+                            </v-form>
                         </v-card>
                     </v-col>
                 </v-row>
                 <div class="background"/>
             </v-container>
-
-            <!--            <div class="form">-->
-            <!--                            <div class="md-invalid" v-if="errorMessage">-->
-            <!--                                <span class="md-error">{{errorMessage}}</span>-->
-            <!--                            </div>-->
-            <!--                <md-field :class="getValidationClass('email')">-->
-            <!--                    <label for='email'>E-mail</label>-->
-            <!--                    <md-input id='email' v-model="form.email" autofocus></md-input>-->
-            <!--                    <span class="md-error" v-if="!$v.form.email.required">L'email est obligatoire</span>-->
-            <!--                    <span class="md-error" v-else-if="!$v.form.email.email">Format de l'email incorrect</span>-->
-            <!--                </md-field>-->
-
-            <!--                <md-field md-has-password :class="getValidationClass('password')">-->
-            <!--                    <label for='password'>Mot de passe</label>-->
-            <!--                    <md-input id="password" v-model="form.password" type="password"></md-input>-->
-            <!--                    <span class="md-error" v-if="!$v.form.password.required">Le mot de passe est obligatoire</span>-->
-            <!--                    <span class="md-error" v-else-if="!$v.form.password.minLength">La taille du mot de passe doit être supérieur à 6 caractères</span>-->
-            <!--                </md-field>-->
-            <!--            </div>-->
-
-            <!--            <div class="md-layout md-alignment-center-right">-->
-            <!--                <md-button type="submit" class="md-raised md-primary">Se connecter</md-button>-->
-            <!--            </div>-->
-
-            <!--            <div class="loading-overlay" v-if="loading">-->
-            <!--                <md-progress-spinner md-mode="indeterminate" :md-stroke="2"></md-progress-spinner>-->
-            <!--            </div>-->
-
-            <!--        </v-container>-->
-            <!--        <div class="background"/>-->
-            <!--    </form>-->
         </v-main>
     </v-app>
 </template>
@@ -195,34 +167,17 @@ export default {
         z-index: 0;
     }
 
-    .md-content {
-        z-index: 1;
-        padding: 40px;
-        width: 100%;
-        max-width: 400px;
-        position: relative;
-    }
-
-    div.md-invalid {
+    div.v-invalid {
         height: 3vh;
+        margin-bottom:20px;
     }
 
-    div.md-invalid .md-error {
+    div.v-invalid .v-error {
         color: red;
     }
 
-    .loading-overlay {
-        z-index: 10;
-        top: 0;
-        left: 0;
-        right: 0;
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .spaced {
+        padding: 20px;
     }
 }
 </style>

@@ -36,49 +36,60 @@
     <!--        </md-app>-->
     <!--    </div>-->
 
-    <v-app id="inspire">
+    <v-app>
         <v-navigation-drawer
             v-model="drawer"
-            app
-        >
+            bottom
+            absolute
+            temporary>
             <v-list>
                 <v-list-item link to="/">
                     <v-list-item-action>
                         <v-icon>mdi-home</v-icon>
                     </v-list-item-action>
                     <v-list-item-content>
-                        <v-list-item-title>Home</v-list-item-title>
+                        <v-list-item-title>Page d'accueil</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
                 <v-list-item link to="/members">
                     <v-list-item-action>
-                        <v-icon>mdi-email</v-icon>
+                        <v-icon>mdi-account-arrow-right</v-icon>
                     </v-list-item-action>
                     <v-list-item-content>
-                        <v-list-item-title>Contact</v-list-item-title>
+                        <v-list-item-title>Gestion des adhérents</v-list-item-title>
                     </v-list-item-content>
                 </v-list-item>
             </v-list>
         </v-navigation-drawer>
 
-        <v-app-bar
-            app
-            color="blue"
-            dark
-        >
+        <v-app-bar app color="primary" dark>
             <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-            <v-toolbar-title>Application</v-toolbar-title>
+            <v-toolbar-title>Cloud CMR</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <span>{{username}}</span>
+            <v-menu bottom left>
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        dark
+                        icon
+                        v-bind="attrs"
+                        v-on="on"
+                    >
+                        <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn>
+                </template>
+
+                <v-list>
+                    <v-list-item link to="/login">
+                        <v-list-item-title>Se déconnecter</v-list-item-title>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
         </v-app-bar>
 
         <v-main>
-            <v-container
-                class="fill-height"
-                fluid
-            >
-                <v-row
-                    align="center"
-                    justify="center"
-                >
+            <v-container class="fill-height" fluid>
+                <v-row align="center" justify="center">
                     <v-col class="text-center">
                         <v-tooltip left>
                             <template v-slot:activator="{ on }">
@@ -99,7 +110,7 @@
             </v-container>
         </v-main>
         <v-footer app>
-            <span class="white--text">&copy; {{ new Date().getFullYear() }}</span>
+            <span class="grey--text">&copy; {{ new Date().getFullYear() }}</span>
         </v-footer>
     </v-app>
 </template>
