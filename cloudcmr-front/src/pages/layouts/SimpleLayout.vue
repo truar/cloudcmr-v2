@@ -64,9 +64,11 @@
 
         <v-app-bar app color="primary" dark>
             <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-            <v-toolbar-title>Cloud CMR</v-toolbar-title>
+            <v-toolbar-title>Cloud CMR /
+                <slot name="subtitle">Accueil</slot>
+            </v-toolbar-title>
             <v-spacer></v-spacer>
-            <span>{{username}}</span>
+            <span>{{ username }}</span>
             <v-menu bottom left>
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn
@@ -88,25 +90,27 @@
         </v-app-bar>
 
         <v-main>
-            <v-container class="fill-height" fluid>
-                <v-row align="center" justify="center">
-                    <v-col class="text-center">
-                        <v-tooltip left>
-                            <template v-slot:activator="{ on }">
-                                <v-btn
-                                    :href="source"
-                                    icon
-                                    large
-                                    target="_blank"
-                                    v-on="on"
-                                >
-                                    <v-icon large>mdi-code-tags</v-icon>
-                                </v-btn>
-                            </template>
-                            <span>Source</span>
-                        </v-tooltip>
-                    </v-col>
-                </v-row>
+            <v-container fluid>
+                <slot>
+                    <v-row align="center" justify="center">
+                        <v-col class="text-center">
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on }">
+                                    <v-btn
+                                        :href="source"
+                                        icon
+                                        large
+                                        target="_blank"
+                                        v-on="on"
+                                    >
+                                        <v-icon large>mdi-code-tags</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Source</span>
+                            </v-tooltip>
+                        </v-col>
+                    </v-row>
+                </slot>
             </v-container>
         </v-main>
         <v-footer app>

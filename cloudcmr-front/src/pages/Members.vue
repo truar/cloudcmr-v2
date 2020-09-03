@@ -1,94 +1,121 @@
 <template>
     <simple-layout>
-        <template slot="subtitle"><span class="md-title">Adhérents</span></template>
-        <div>
-            <md-table :value="searched" md-sort="name" md-sort-order="asc" md-card>
-                <md-table-toolbar>
-                    <div class="md-toolbar-section-start">
-                        <md-button class="md-primary md-raised" @click="newMember">Créer un nouvel adhérent</md-button>
-                    </div>
-
-                    <md-field md-clearable class="md-toolbar-section-end">
-                        <md-input placeholder="Recherche rapide par nom/prénom..." v-model="searchLocal"
-                                  @input="searchOnTable"/>
-                    </md-field>
-                </md-table-toolbar>
-
-                <md-table-empty-state
-                    md-label="Aucun adhérent trouvé"
-                    :md-description="`Aucun adhérent trouvé pour la recherche ${search}.
-                    Essayez une autre recherche ou bien ajoutez un nouvel adhérent`">
-                    <md-button class="md-primary md-raised" @click="newMember">Créer un nouvel adhérent</md-button>
-                </md-table-empty-state>
-
-                <md-table-row slot="md-table-row" slot-scope="{ item }">
-                    <md-table-cell md-label="Nom" md-sort-by="lastName">{{ item.lastName }}</md-table-cell>
-                    <md-table-cell md-label="Prenom" md-sort-by="firstName">{{ item.firstName }}</md-table-cell>
-                    <md-table-cell md-label="E-mail" md-sort-by="email">{{ item.email }}</md-table-cell>
-                </md-table-row>
-                <md-table-pagination
-                    md-label="Pages"
-                    :md-page-size="page.pageSize"
-                    :md-page="page.currentPage"
-                    :md-total="page.total"
-                    md-separator="de"
-                    :md-page-options="page.pageOptions"
-                    @update:mdPageSize="onMdPageSize"
-                    @pagination="onPagination">
-                </md-table-pagination>
-            </md-table>
-            <md-dialog :md-active.sync="showCreationForm">
-                <md-dialog-title>Création d'un nouvel adhérent</md-dialog-title>
-                <form novalidate id="new-member-form" class="md-layout" @submit.prevent="handleCreateMember">
-                    <md-dialog-content>
-                        <md-field :class="getValidationClass('lastName')">
-                            <label for='lastName'>Nom</label>
-                            <md-input id='lastName' v-model="form.lastName" autofocus></md-input>
-                            <span class="md-error"
-                                  v-if="!$v.form.lastName.required">Le nom est obligatoire</span>
-                        </md-field>
-                        <md-field :class="getValidationClass('firstName')">
-                            <label for='firstName'>Prénom</label>
-                            <md-input id='firstName' v-model="form.firstName"></md-input>
-                            <span class="md-error"
-                                  v-if="!$v.form.firstName.required">Le prénom est obligatoire</span>
-                        </md-field>
-                        <div>
-                            <md-radio v-model="form.gender" value="MALE">Homme</md-radio>
-                            <md-radio v-model="form.gender" value="FEMALE">Femme</md-radio>
-                        </div>
-                        <md-field :class="getValidationClass('email')">
-                            <label for='email'>E-mail</label>
-                            <md-input id='email' v-model="form.email"></md-input>
-                            <span class="md-error"
-                                  v-if="!$v.form.email.required">L'e-mail est obligatoire</span>
-                            <span class="md-error"
-                                  v-if="!$v.form.email.email">Format de l'email incorrect</span>
-                        </md-field>
-                        <md-field :class="getValidationClass('mobile')">
-                            <label for='mobile'>Mobile</label>
-                            <md-input id='mobile' v-model="form.mobile"></md-input>
-                            <span class="md-error"
-                                  v-if="!$v.form.mobile.required">Le mobile est obligatoire</span>
-                        </md-field>
-                        <md-field :class="getValidationClass('birthDate')">
-                            <label for='birthDate'>Date de naissance</label>
-                            <md-input id='birthDate' v-model="form.birthDate"></md-input>
-                        </md-field>
-                        <md-dialog-actions>
-                            <md-button class="md-primary" @click="showCreationForm = false">Annuler</md-button>
-                            <md-button type="submit" class="md-raised md-primary">Créer</md-button>
-                        </md-dialog-actions>
-                    </md-dialog-content>
-                </form>
-            </md-dialog>
-        </div>
+        <template slot="subtitle">Adhérents</template>
+        <v-row>
+            <v-col>
+                <v-dialog v-model="showCreationForm" persistent max-width="600px">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            color="primary"
+                            dark
+                            v-bind="attrs"
+                            v-on="on"
+                        >
+                            Creer un nouvel adhérent
+                        </v-btn>
+                    </template>
+                    <v-card>
+                        <v-form @submit.prevent="handleCreateMember">
+                            <v-card-title>
+                                <span class="headline">Création d'un nouvel adhérent</span>
+                            </v-card-title>
+                            <v-card-text>
+                                <v-container>
+                                    <v-row>
+                                        <v-col cols="12" sm="6" md="6">
+                                            <v-text-field
+                                                label="Nom *"
+                                                v-model="form.lastName"
+                                                type="text"
+                                                :error-messages="lastNameErrors"
+                                                @input="$v.form.lastName.$touch()"
+                                                @blur="$v.form.lastName.$touch()"
+                                                required
+                                            ></v-text-field>
+                                        </v-col>
+                                        <v-col cols="12" sm="6" md="6">
+                                            <v-text-field
+                                                label="Prénom *"
+                                                v-model="form.firstName"
+                                                type="text"
+                                                :error-messages="firstNameErrors"
+                                                @input="$v.form.firstName.$touch()"
+                                                @blur="$v.form.firstName.$touch()"
+                                                required
+                                            ></v-text-field>
+                                        </v-col>
+                                        <v-col cols="12" sm="6" md="6">
+                                            <v-text-field
+                                                label="Date de naissance *"
+                                                v-model="form.birthDate"
+                                                type="text"
+                                            ></v-text-field>
+                                        </v-col>
+                                        <v-col cols="12" sm="6" md="6">
+                                            <v-select
+                                                v-model="form.gender"
+                                                :items="[{value: 'MALE', text: 'Homme'}, {value: 'FEMALE', text: 'Femme'}]"
+                                                label="Sexe *"
+                                                required
+                                                :error-messages="genderErrors"
+                                                @input="$v.form.gender.$touch()"
+                                                @blur="$v.form.gender.$touch()"
+                                            ></v-select>
+                                        </v-col>
+                                        <v-col cols="12" md="8">
+                                            <v-text-field
+                                                label="E-mail *"
+                                                v-model="form.email"
+                                                type="text"
+                                                :error-messages="emailErrors"
+                                                @input="$v.form.email.$touch()"
+                                                @blur="$v.form.email.$touch()"
+                                                required
+                                            ></v-text-field>
+                                        </v-col>
+                                        <v-col cols="12" md="4">
+                                            <v-text-field
+                                                label="Mobile *"
+                                                v-model="form.mobile"
+                                                type="text"
+                                                :error-messages="mobileErrors"
+                                                @input="$v.form.mobile.$touch()"
+                                                @blur="$v.form.mobile.$touch()"
+                                                required
+                                            ></v-text-field>
+                                        </v-col>
+                                    </v-row>
+                                </v-container>
+                                <small>* champs obligatoires</small>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="blue darken-1" text @click="showCreationForm = false">Fermer</v-btn>
+                                <v-btn type="submit" dark color="blue darken-1">Créer</v-btn>
+                            </v-card-actions>
+                        </v-form>
+                    </v-card>
+                </v-dialog>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-data-table
+                    :headers="headers"
+                    :items="members"
+                    :items-per-page="page.pageSize"
+                    :server-items-length="page.total"
+                    :options.sync="options"
+                    :loading="loading"
+                    class="elevation-1"
+                ></v-data-table>
+            </v-col>
+        </v-row>
     </simple-layout>
 </template>
 
 <script>
 import SimpleLayout from '@/pages/layouts/SimpleLayout.vue'
-import MdTablePagination from '@/components/tables/MdTablePagination.vue'
 import { validationMixin } from 'vuelidate'
 import { email, required } from 'vuelidate/lib/validators'
 import { mapActions, mapState } from 'vuex'
@@ -97,11 +124,17 @@ export default {
     name: 'Members',
     mixins: [validationMixin],
     components: {
-        SimpleLayout,
-        MdTablePagination
+        SimpleLayout
     },
     data: () => ({
         showCreationForm: false,
+        loading: false,
+        options: {},
+        headers: [
+            { text: 'Nom', value: 'lastName' },
+            { text: 'Prénom', value: 'firstName' },
+            { text: 'E-mail', value: 'email' }
+        ],
         page: {
             pageSize: 5,
             currentPage: 1,
@@ -146,6 +179,45 @@ export default {
             set(value) {
                 this.$store.commit('members/updateSearch', value)
             }
+        },
+        emailErrors() {
+            const errors = []
+            if (!this.$v.form.email.$dirty) return errors
+            !this.$v.form.email.required && errors.push('L\'email est obligatoire')
+            !this.$v.form.email.email && errors.push('Format de l\'email incorrect')
+            return errors
+        },
+        firstNameErrors() {
+            const errors = []
+            if (!this.$v.form.firstName.$dirty) return errors
+            !this.$v.form.firstName.required && errors.push('Le prénom est obligatoire')
+            return errors
+        },
+        lastNameErrors() {
+            const errors = []
+            if (!this.$v.form.lastName.$dirty) return errors
+            !this.$v.form.lastName.required && errors.push('Le nom est obligatoire')
+            return errors
+        },
+        genderErrors() {
+            const errors = []
+            if (!this.$v.form.gender.$dirty) return errors
+            !this.$v.form.gender.required && errors.push('Le sexe est obligatoire')
+            return errors
+        },
+        mobileErrors() {
+            const errors = []
+            if (!this.$v.form.mobile.$dirty) return errors
+            !this.$v.form.mobile.required && errors.push('Le mobile est obligatoire')
+            return errors
+        }
+    },
+    watch: {
+        options: {
+            handler() {
+                console.table(this.options)
+            },
+            deep: true
         }
     },
     methods: {
@@ -153,28 +225,24 @@ export default {
         newMember() {
             this.showCreationForm = true
         },
-        getValidationClass(fieldName) {
-            const field = this.$v.form[fieldName]
-            if (field) {
-                return {
-                    'md-invalid': field.$invalid && field.$dirty
-                }
-            }
-        },
         async handleCreateMember() {
             this.$v.$touch()
 
             if (!this.$v.$invalid) {
                 const { lastName, firstName, email, gender, mobile, birthDate } = this.form
                 await this.createMember({ lastName, firstName, gender, email, mobile, birthDate })
+                this.resetCreationForm()
                 this.showCreationForm = false
             }
         },
-        onPagination(page) {
-            this.page.currentPage = page
-        },
-        onMdPageSize(pageSize) {
-            this.page.pageSize = pageSize
+        resetCreationForm() {
+            this.$v.$reset()
+            this.form.lastName = ''
+            this.form.firstName = ''
+            this.form.gender = ''
+            this.form.birthDate = ''
+            this.form.mobile = ''
+            this.form.email = ''
         }
     },
     async created() {
