@@ -60,10 +60,14 @@ public class MemberResources {
     }
 
     private MemberListDTO toMemberListDTO(Page<Member> members, long total) {
-        List<MemberDTO> membersDTO = members.elements.stream()
-                .map(this::toMemberDTO)
+        List<MemberOverviewDTO> membersDTO = members.elements.stream()
+                .map(this::toMemberOverviewDTO)
                 .collect(toList());
         return new MemberListDTO(membersDTO, total);
+    }
+
+    private MemberOverviewDTO toMemberOverviewDTO(Member member) {
+        return new MemberOverviewDTO(member.getId(), member.getLastName(), member.getFirstName(), member.getEmail());
     }
 
     private MemberDTO toMemberDTO(Member member) {

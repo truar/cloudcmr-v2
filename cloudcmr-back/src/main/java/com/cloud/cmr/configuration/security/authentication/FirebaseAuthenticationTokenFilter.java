@@ -26,7 +26,7 @@ public class FirebaseAuthenticationTokenFilter extends AuthenticationTokenFilter
      */
     protected Authentication getAndValidateAuthentication(String authToken) throws Exception {
         var firebaseToken = FirebaseAuth.getInstance().verifyIdToken(authToken);
-        return new UsernamePasswordAuthenticationToken(firebaseToken, authToken, new ArrayList<>());
+        return new UsernamePasswordAuthenticationToken(firebaseToken.getEmail(), authToken, new ArrayList<>());
     }
 
     @Override

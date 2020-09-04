@@ -3,6 +3,7 @@ package com.cloud.cmr.exposition;
 import com.cloud.cmr.domain.member.Member;
 import com.cloud.cmr.exposition.member.MemberDTO;
 import com.cloud.cmr.exposition.member.MemberListDTO;
+import com.cloud.cmr.exposition.member.MemberOverviewDTO;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -111,23 +112,13 @@ public class MemberResourcesTest {
 
             MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(2);
-            List<MemberDTO> members = memberListDTO.members;
+            List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members.get(0).lastName).isEqualTo("lastName1");
             assertThat(members.get(0).firstName).isEqualTo("firstName1");
             assertThat(members.get(0).email).isEqualTo("abc@def.com");
-            assertThat(members.get(0).gender).isEqualTo("MALE");
-            assertThat(members.get(0).phone).isEqualTo("0401020304");
-            assertThat(members.get(0).mobile).isEqualTo("0606060606");
-            assertThat(members.get(0).createdAt).isEqualTo("2020-08-28T10:00:00Z");
-            assertThat(members.get(0).creator).isEqualTo("user");
             assertThat(members.get(1).lastName).isEqualTo("lastName2");
             assertThat(members.get(1).firstName).isEqualTo("firstName2");
             assertThat(members.get(1).email).isEqualTo("def@ghi.fr");
-            assertThat(members.get(1).gender).isEqualTo("FEMALE");
-            assertThat(members.get(1).phone).isEqualTo("0102030405");
-            assertThat(members.get(1).mobile).isEqualTo("0707070707");
-            assertThat(members.get(1).createdAt).isEqualTo("2020-08-28T10:00:00Z");
-            assertThat(members.get(1).creator).isEqualTo("user");
         }
 
         @Test
@@ -146,7 +137,7 @@ public class MemberResourcesTest {
 
             MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=1", MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(7);
-            List<MemberDTO> members = memberListDTO.members;
+            List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(2);
             assertThat(members.get(0).lastName).isEqualTo("lastName1");
             assertThat(members.get(0).firstName).isEqualTo("firstName1");
@@ -191,7 +182,7 @@ public class MemberResourcesTest {
 
             MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(3);
-            List<MemberDTO> members = memberListDTO.members;
+            List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(3);
             assertThat(members.get(0).lastName).isEqualTo("lastName1");
             assertThat(members.get(0).firstName).isEqualTo("firstName1");
@@ -213,7 +204,7 @@ public class MemberResourcesTest {
 
             MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?sortBy=lastName&sortOrder=DESC", MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(3);
-            List<MemberDTO> members = memberListDTO.members;
+            List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(3);
             assertThat(members.get(0).lastName).isEqualTo("lastName3");
             assertThat(members.get(0).firstName).isEqualTo("firstName3");
@@ -235,7 +226,7 @@ public class MemberResourcesTest {
 
             MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?sortBy=firstName&sortOrder=ASC", MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(3);
-            List<MemberDTO> members = memberListDTO.members;
+            List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(3);
             assertThat(members.get(0).lastName).isEqualTo("lastName2");
             assertThat(members.get(0).firstName).isEqualTo("firstName1");
