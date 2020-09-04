@@ -39,7 +39,6 @@
     <v-app>
         <v-navigation-drawer
             v-model="drawer"
-            bottom
             absolute
             temporary>
             <v-list>
