@@ -1,6 +1,6 @@
 package com.cloud.cmr.domain.member;
 
-import java.util.List;
+import com.cloud.cmr.domain.common.Page;
 
 public interface MemberRepository {
     void save(Member member);
@@ -9,5 +9,5 @@ public interface MemberRepository {
 
     Member findById(String memberId);
 
-    List<Member> findAll();
+    Page<Member> findWithFilter(Integer page, Integer pageSize, String sortBy, String sortOrder);
 }

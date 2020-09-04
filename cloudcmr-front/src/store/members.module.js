@@ -1,48 +1,59 @@
 import { memberService } from '@/services/member.service.js'
 
-const toLower = text => {
-    return text.toString().toLowerCase()
-}
-
-const searchByName = (items, term) => {
-    if (term) {
-        return items.filter(item => toLower(item.lastName).includes(toLower(term)))
-    }
-    return items
-}
-
 export const members = {
     namespaced: true,
     state: {
-        search: null,
-        searched: [],
-        members: []
+        members: [],
+        total: 0,
+        loading: true,
+        page: 1,
+        itemsPerPage: 10,
+        sortBy: undefined,
+        isDesc: undefined
     },
     mutations: {
-        fetchAllSuccess(state, members) {
-            state.members = members
-            state.searched = members
+        fetchAllSuccess(state, memberList) {
+            state.members = memberList.members
+            state.total = memberList.total
+            state.loading = false
         },
-        searchSuccess(state, members) {
-            state.searched = members
+        paginationUpdated(state, { page, itemsPerPage, sortBy, isDesc }) {
+            state.page = page
+            state.itemsPerPage = itemsPerPage
+            state.sortBy = sortBy
+            state.isDesc = isDesc
         },
-        updateSearch(state, searchValue) {
-            state.search = searchValue
+        isLoading(state) {
+            state.loading = true
         }
     },
     actions: {
-        async fetchAll({ commit }) {
-            const members = await memberService.fetchAll()
-            commit('fetchAllSuccess', members)
+        async fetchAll({ commit, getters }) {
+            commit('isLoading')
+            const { page, itemsPerPage } = getters.getPagination
+            const { sortBy, isDesc } = getters.getSort
+            const memberList = await memberService.fetchAll(page, itemsPerPage, sortBy, isDesc)
+            commit('fetchAllSuccess', memberList)
         },
         async createMember({ commit, dispatch }, { lastName, firstName, gender, email, mobile, birthDate }) {
             await memberService.create(lastName, firstName, gender, email, mobile, birthDate)
-            await dispatch('fetchAll')
-            dispatch('searchOnTable')
+            dispatch('fetchAll')
         },
-        searchOnTable({ commit, state }) {
-            commit('searchSuccess', searchByName(state.members, state.search))
+        updatePagination({ commit, getters, dispatch }, { page, itemsPerPage, sortBy, isDesc }) {
+            if (sortBy !== getters.getSort.sortBy || isDesc !== getters.getSort.isDesc) {
+                commit('paginationUpdated', { page: 1, itemsPerPage, sortBy, isDesc })
+            } else {
+                commit('paginationUpdated', { page, itemsPerPage, sortBy, isDesc })
+            }
+            dispatch('fetchAll')
         }
     },
-    getters: {}
+    getters: {
+        getPagination: state => {
+            return { page: state.page, itemsPerPage: state.itemsPerPage }
+        },
+        getSort: state => {
+            return { sortBy: state.sortBy, isDesc: state.isDesc }
+        }
+    }
 }

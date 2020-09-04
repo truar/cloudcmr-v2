@@ -49,6 +49,10 @@
                                                 label="Date de naissance *"
                                                 v-model="form.birthDate"
                                                 type="text"
+                                                :error-messages="birthDateErrors"
+                                                @input="$v.form.birthDate.$touch()"
+                                                @blur="$v.form.birthDate.$touch()"
+                                                required
                                             ></v-text-field>
                                         </v-col>
                                         <v-col cols="12" sm="6" md="6">
@@ -103,10 +107,11 @@
                 <v-data-table
                     :headers="headers"
                     :items="members"
-                    :items-per-page="page.pageSize"
-                    :server-items-length="page.total"
-                    :options.sync="options"
+                    :server-items-length="total"
+                    :options="tableOptions"
+                    :footer-props="footer"
                     :loading="loading"
+                    @update:options="updateOptions"
                     class="elevation-1"
                 ></v-data-table>
             </v-col>
@@ -128,18 +133,13 @@ export default {
     },
     data: () => ({
         showCreationForm: false,
-        loading: false,
-        options: {},
         headers: [
             { text: 'Nom', value: 'lastName' },
             { text: 'Prénom', value: 'firstName' },
             { text: 'E-mail', value: 'email' }
         ],
-        page: {
-            pageSize: 5,
-            currentPage: 1,
-            pageOptions: [5, 10, 25, 50],
-            total: 35
+        footer: {
+            itemsPerPageOptions: [5, 10, 25, 50]
         },
         form: {
             lastName: '',
@@ -167,19 +167,14 @@ export default {
             },
             mobile: {
                 required
+            },
+            birthDate: {
+                required
             }
         }
     },
     computed: {
-        ...mapState('members', ['search', 'searched', 'members']),
-        searchLocal: {
-            get() {
-                return this.search
-            },
-            set(value) {
-                this.$store.commit('members/updateSearch', value)
-            }
-        },
+        ...mapState('members', ['members', 'total', 'loading', 'page', 'itemsPerPage']),
         emailErrors() {
             const errors = []
             if (!this.$v.form.email.$dirty) return errors
@@ -210,18 +205,22 @@ export default {
             if (!this.$v.form.mobile.$dirty) return errors
             !this.$v.form.mobile.required && errors.push('Le mobile est obligatoire')
             return errors
-        }
-    },
-    watch: {
-        options: {
-            handler() {
-                console.table(this.options)
-            },
-            deep: true
+        },
+        birthDateErrors() {
+            const errors = []
+            if (!this.$v.form.birthDate.$dirty) return errors
+            !this.$v.form.birthDate.required && errors.push('Le date de naissance est obligatoire')
+            return errors
+        },
+        tableOptions() {
+            return {
+                page: this.page,
+                itemsPerPage: this.itemsPerPage
+            }
         }
     },
     methods: {
-        ...mapActions('members', ['fetchAll', 'searchOnTable', 'createMember']),
+        ...mapActions('members', ['fetchAll', 'createMember', 'updatePagination']),
         newMember() {
             this.showCreationForm = true
         },
@@ -243,16 +242,13 @@ export default {
             this.form.birthDate = ''
             this.form.mobile = ''
             this.form.email = ''
+        },
+        updateOptions(options) {
+            const { page, itemsPerPage } = options
+            const sortBy = options.sortBy[0]
+            const isDesc = options.sortDesc[0]
+            this.updatePagination({ page, itemsPerPage, sortBy, isDesc })
         }
-    },
-    async created() {
-        await this.fetchAll()
     }
 }
 </script>
-
-<style lang='scss' scoped>
-.md-field {
-    max-width: 300px;
-}
-</style>

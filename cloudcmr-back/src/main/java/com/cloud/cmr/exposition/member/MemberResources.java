@@ -1,6 +1,7 @@
 package com.cloud.cmr.exposition.member;
 
 import com.cloud.cmr.application.member.MemberApplicationService;
+import com.cloud.cmr.domain.common.Page;
 import com.cloud.cmr.domain.member.Address;
 import com.cloud.cmr.domain.member.Member;
 import org.springframework.http.ResponseEntity;
@@ -50,16 +51,19 @@ public class MemberResources {
     }
 
     @GetMapping
-    public MemberListDTO getAllMembers() {
-        List<Member> members = memberApplicationService.allMembers();
-        return toMemberListDTO(members);
+    public MemberListDTO getAllMembers(@RequestParam(defaultValue = "1") Integer page,
+                                       @RequestParam(defaultValue = "20") Integer pageSize,
+                                       @RequestParam(defaultValue = "ASC") String sortOrder,
+                                       @RequestParam(defaultValue = "lastName") String sortBy) {
+        Page<Member> members = memberApplicationService.filter(page, pageSize, sortBy, sortOrder);
+        return toMemberListDTO(members, members.total);
     }
 
-    private MemberListDTO toMemberListDTO(List<Member> members) {
-        List<MemberDTO> membersDTO = members.stream()
+    private MemberListDTO toMemberListDTO(Page<Member> members, long total) {
+        List<MemberDTO> membersDTO = members.elements.stream()
                 .map(this::toMemberDTO)
                 .collect(toList());
-        return new MemberListDTO(membersDTO);
+        return new MemberListDTO(membersDTO, total);
     }
 
     private MemberDTO toMemberDTO(Member member) {

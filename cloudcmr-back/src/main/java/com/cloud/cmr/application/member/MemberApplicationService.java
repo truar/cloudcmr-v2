@@ -1,10 +1,10 @@
 package com.cloud.cmr.application.member;
 
 import com.cloud.cmr.domain.member.*;
+import com.cloud.cmr.domain.common.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
-import java.util.List;
 
 @Service
 public class MemberApplicationService {
@@ -28,8 +28,8 @@ public class MemberApplicationService {
         return memberRepository.findById(memberId);
     }
 
-    public List<Member> allMembers() {
-        return memberRepository.findAll();
+    public Page<Member> filter(Integer page, Integer pageSize, String sortBy, String sortOrder) {
+        return memberRepository.findWithFilter(page, pageSize, sortBy, sortOrder);
     }
 
     public void changeAddressOfMember(String memberId, String line1, String line2, String line3, String city, String zipCode) {

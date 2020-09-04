@@ -6,5 +6,4 @@ import org.springframework.cloud.gcp.data.datastore.repository.DatastoreReposito
 import java.util.List;
 
 public interface DatastoreMemberDao extends DatastoreRepository<Member, String> {
-    List<Member> findAllByOrderByLastNameAscFirstNameAsc();
 }

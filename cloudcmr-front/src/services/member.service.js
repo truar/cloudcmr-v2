@@ -5,13 +5,21 @@ export const memberService = {
     create
 }
 
-async function fetchAll() {
-    const rawData = await axios.get('/api/members')
-    return rawData.data?.members
+async function fetchAll(page, pageSize, sortBy, isDesc) {
+    let url = `/api/members?page=${page}&pageSize=${pageSize}`
+    if (sortBy !== undefined) {
+        url += `&sortBy=${sortBy}`
+    }
+    if (isDesc !== undefined) {
+        const sortOrder = isDesc ? 'DESC' : 'ASC'
+        url += `&sortOrder=${sortOrder}`
+    }
+    const rawData = await axios.get(url)
+    return rawData.data
 }
 
 async function create(lastName, firstName, gender, email, mobile, birthDate) {
     await axios.post('/api/members/create', {
-        lastName, firstName, gender, email, mobile
+        lastName, firstName, gender, email, mobile, birthDate
     })
 }
