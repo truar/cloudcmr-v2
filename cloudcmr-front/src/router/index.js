@@ -3,15 +3,15 @@ import VueRouter from 'vue-router'
 import Home from '@/pages/Home.vue'
 import Login from '@/pages/Login.vue'
 import { userService } from '@/services/user.service'
-import Members from '@/pages/members/Members'
-import MemberEdit from '@/pages/members/MemberEdit'
+import MemberPageList from '@/pages/members/MemberListPage/index'
+import MemberEdit from '@/pages/members/MemberEditPage'
 
 Vue.use(VueRouter)
 
 const routes = [
     { path: '/', component: Home },
     { path: '/login', component: Login, name: 'login' },
-    { path: '/members', component: Members },
+    { path: '/members', component: MemberPageList },
     { path: '/members/:memberId', component: MemberEdit }
 ]
 
