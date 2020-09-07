@@ -55,7 +55,7 @@ public class MemberResourcesTest {
                 "\"gender\":\"" + gender + "\"," +
                 "\"phone\":\"" + phone + "\"," +
                 "\"mobile\":\"" + mobile + "\"," +
-                "\"birthDate\":\"1970-01-01\"" +
+                "\"birthDate\":\"" + birthDate + "\"" +
                 "}";
 
         ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
