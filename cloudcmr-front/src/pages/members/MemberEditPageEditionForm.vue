@@ -1,6 +1,6 @@
 <template>
     <v-card>
-        <v-form @submit.prevent="handleSubmit">
+        <v-form @submit.prevent="handleChangeContactInformation">
             <v-card-title>
                 <span class="text-h6 font-weight-medium">{{ memberFullName }}</span>
             </v-card-title>
@@ -84,7 +84,7 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="reinitMember">Réinitialiser</v-btn>
+                <v-btn color="blue darken-1" text @click="handleReinit">Réinitialiser</v-btn>
                 <v-btn type="submit" dark color="blue darken-1">Enregistrer</v-btn>
             </v-card-actions>
         </v-form>
@@ -99,10 +99,7 @@ export default {
     name: 'MemberEditPageEditionForm',
     mixins: [validationMixin],
     props: {
-        initialMember: Object,
-        loading: Boolean,
-        handleSubmit: Function,
-        handleReset: Function
+        initialMember: Object
     },
     data: function() {
         return {
@@ -175,8 +172,12 @@ export default {
         }
     },
     methods: {
-        reinitMember() {
+        handleReinit() {
             this.member = JSON.parse(JSON.stringify(this.initialMember))
+        },
+        handleChangeContactInformation() {
+            alert('submit')
+            console.table(this.member)
         }
     }
 }

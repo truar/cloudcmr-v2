@@ -5,7 +5,7 @@
             <v-col md="4">
                 <member-edit-page-edition-form v-if="isMemberLoaded"
                                                :initial-member="member"
-                                               :handle-submit="handleChangeContactInformation"></member-edit-page-edition-form>
+                ></member-edit-page-edition-form>
             </v-col>
             <v-col md="8">
                 <v-tabs
@@ -128,10 +128,6 @@ export default {
         }
     },
     methods: {
-        handleChangeContactInformation() {
-            alert('submit')
-            console.table(this.member)
-        },
         async handleChangeAddress() {
             await memberService.changeAddress(this.memberId, this.member.address)
         }
