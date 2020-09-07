@@ -77,22 +77,50 @@
         <v-footer app>
             <span class="grey--text">&copy; {{ new Date().getFullYear() }}</span>
         </v-footer>
+        <v-snackbar
+            v-for="(notification, index) in notifications" :key="notification.index"
+            :value="true"
+            @input="(event) => handleDeleteNotification(notification.index)"
+            timeout="5000"
+            top
+            right
+            :color="notification.notificationStatus"
+            :style="{paddingTop: `${(index + 1) * 64}px`}"
+        >
+            {{ notification.message }}
+            <template v-slot:action="{ attrs }">
+                <v-btn
+                    text
+                    v-bind="attrs"
+                    @click="handleDeleteNotification(notification.index)"
+                >
+                    Close
+                </v-btn>
+            </template>
+        </v-snackbar>
     </v-app>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 export default {
     name: 'SimpleLayout',
     computed: {
         ...mapGetters('account', ['getPrincipalName']),
+        ...mapState('notifications', ['notifications']),
         username() {
             return this.getPrincipalName
         }
     },
     data: () => ({
         drawer: false
-    })
+    }),
+    methods: {
+        ...mapActions('notifications', ['deleteNotification']),
+        handleDeleteNotification(notificationId) {
+            this.deleteNotification({ notificationId })
+        }
+    }
 }
 </script>

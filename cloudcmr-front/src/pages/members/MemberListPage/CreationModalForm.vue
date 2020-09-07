@@ -182,12 +182,14 @@ export default {
     },
     methods: {
         ...mapActions('members', ['createMember']),
+        ...mapActions('notifications', ['addSuccessNotification']),
         async handleCreateMember() {
             this.$v.$touch()
 
             if (!this.$v.$invalid) {
                 const { lastName, firstName, email, gender, mobile, birthDate } = this.form
                 await this.createMember({ lastName, firstName, gender, email, mobile, birthDate })
+                this.addSuccessNotification({ message: 'Adhérent ajouté' })
                 this.resetCreationForm()
                 this.showCreationForm = false
             }
