@@ -4,7 +4,7 @@ import Home from '@/pages/Home.vue'
 import Login from '@/pages/Login.vue'
 import { userService } from '@/services/user.service'
 import MemberPageList from '@/pages/members/MemberListPage/index'
-import MemberEditPage from '@/pages/members/MemberEditPage'
+import MemberEditPage from '@/pages/members/MemberEditPage/index'
 
 Vue.use(VueRouter)
 

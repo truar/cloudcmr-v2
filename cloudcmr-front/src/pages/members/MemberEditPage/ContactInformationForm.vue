@@ -96,7 +96,7 @@ import { validationMixin } from 'vuelidate'
 import { email, required } from 'vuelidate/lib/validators'
 
 export default {
-    name: 'MemberEditPageEditionForm',
+    name: 'ContactInformationForm',
     mixins: [validationMixin],
     props: {
         initialMember: Object
@@ -176,8 +176,7 @@ export default {
             this.member = JSON.parse(JSON.stringify(this.initialMember))
         },
         handleChangeContactInformation() {
-            alert('submit')
-            console.table(this.member)
+            this.$emit('memberChanged', this.member)
         }
     }
 }
