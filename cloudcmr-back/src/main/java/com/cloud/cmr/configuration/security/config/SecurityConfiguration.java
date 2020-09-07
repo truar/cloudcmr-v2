@@ -1,17 +1,14 @@
-package com.cloud.cmr.security.config;
+package com.cloud.cmr.configuration.security.config;
 
-import com.cloud.cmr.security.authentication.FirebaseAuthenticationTokenFilter;
+import com.cloud.cmr.configuration.security.authentication.AuthenticationTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,23 +26,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${cors.configuration.allowOrigins}")
     private String[] allowOrigins;
+    private AuthenticationTokenFilter authenticationTokenFilter;
 
     public SecurityConfiguration() {
         super();
-    }
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-        auth.inMemoryAuthentication()
-                .withUser("user").password(passwordEncoder.encode("user")).roles("USER");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors(withDefaults())
                 .csrf().disable()
-                .addFilterBefore(firebaseAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
                 .mvcMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .mvcMatchers("/actuator/**").permitAll()
@@ -72,7 +63,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(allowOrigins));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-        configuration.setAllowedHeaders(List.of("Authorization"));
+        configuration.setAllowedHeaders(List.of("Authorization", "content-type"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(Duration.ofHours(1));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -80,7 +71,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    public FirebaseAuthenticationTokenFilter firebaseAuthenticationTokenFilter() {
-        return new FirebaseAuthenticationTokenFilter();
+    @Autowired
+    public void setAuthenticationTokenFilter(AuthenticationTokenFilter authenticationTokenFilter) {
+        this.authenticationTokenFilter = authenticationTokenFilter;
     }
 }

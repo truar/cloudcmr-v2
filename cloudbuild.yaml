@@ -33,8 +33,8 @@ steps:
     args:
       - '-c'
       - |
-        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz yarn-dependencies.tgz || echo "end"
-        tar -zxf yarn-dependencies.tgz || echo "end"
+        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz yarn-dependencies.tgz || exit 0
+        tar -zxf yarn-dependencies.tgz || exit 0
 
   - id: 'install-yarn'
     waitFor: ['download-cached-yarn-dependencies']

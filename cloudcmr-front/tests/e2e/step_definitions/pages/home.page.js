@@ -1,13 +1,13 @@
 export default class HomePage {
-    static goTo () {
+    static goTo() {
         cy.visit('/')
     }
 
-    static assertIsOnHomePage () {
+    static assertIsOnHomePage() {
         cy.location('pathname').should('eq', '/')
     }
 
-    static assertUserInformationAreDisplayedInHeader (username) {
+    static assertUserInformationAreDisplayedInHeader(username) {
         cy.get('header').contains(username)
     }
 }

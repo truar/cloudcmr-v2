@@ -1,124 +1,290 @@
 package com.cloud.cmr.exposition;
 
+import com.cloud.cmr.domain.member.Member;
+import com.cloud.cmr.exposition.member.MemberDTO;
+import com.cloud.cmr.exposition.member.MemberListDTO;
+import com.cloud.cmr.exposition.member.MemberOverviewDTO;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cloud.gcp.data.datastore.core.DatastoreTemplate;
+import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.http.HttpHeaders.LOCATION;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.net.URI;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+@ActiveProfiles("test")
 public class MemberResourcesTest {
 
     public static final String MEMBERS = "/members";
 
     @Autowired
-    private MockMvc mockMvc;
+    private DatastoreTemplate datastoreTemplate;
+    @Autowired
+    private TestRestTemplate testRestTemplate;
+    @MockBean
+    private Clock clock;
 
-    private MvcResult createMember(String lastName, String firstName, String email) throws Exception {
-        String memberAsString = "{" +
+    @BeforeEach
+    void setUp() {
+        datastoreTemplate.deleteAll(Member.class);
+    }
+
+    private URI createMember(String lastName, String firstName, String email, String gender, String phone, String mobile) {
+        String memberJson = "{" +
                 "\"lastName\":\"" + lastName + "\", " +
                 "\"firstName\":\"" + firstName + "\"," +
-                "\"email\":\"" + email + "\"" +
+                "\"email\":\"" + email + "\"," +
+                "\"gender\":\"" + gender + "\"," +
+                "\"phone\":\"" + phone + "\"," +
+                "\"mobile\":\"" + mobile + "\"" +
                 "}";
 
-        return mockMvc.perform(post("/members")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(memberAsString))
-                .andExpect(status().isCreated())
-                .andExpect(header().exists(LOCATION))
-                .andReturn();
+        ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        URI location = responseEntity.getHeaders().getLocation();
+        assertThat(location).isNotNull();
+
+        return location;
+    }
+
+    private ResponseEntity<Void> postRequest(String endpoint, String json) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<String> entity = new HttpEntity<>(json, headers);
+        return authenticatedRequest().
+                postForEntity(endpoint, entity, Void.class);
     }
 
     @Test
-    void only_authenticated_user_can_access_members_api() throws Exception {
-        mockMvc.perform(get(MEMBERS))
-                .andExpect(status().isForbidden());
-
+    void only_authenticated_user_can_access_members_api() {
+        testRestTemplate.getForObject(MEMBERS, Void.class);
     }
 
     @Test
-    @Transactional
-    @WithMockUser
-    void create_a_new_member_and_fetch_it() throws Exception {
-        MvcResult postResponse = createMember("Doe", "John", "john@doe.com");
+    void create_a_new_member_and_fetch_it() {
+        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+        URI location = createMember("Doe", "John", "john@doe.com",
+                "MALE", "0401020304", "0606060606");
 
-        String location = postResponse.getResponse().getHeader(LOCATION);
+        Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> authenticatedRequest().getForObject(location, MemberDTO.class) != null);
 
-        mockMvc.perform(get(location))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lastName", equalTo("Doe")))
-                .andExpect(jsonPath("$.firstName", equalTo("John")))
-                .andExpect(jsonPath("$.email", equalTo("john@doe.com")));
+        MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
+        assertThat(member.lastName).isEqualTo("Doe");
+        assertThat(member.firstName).isEqualTo("John");
+        assertThat(member.email).isEqualTo("john@doe.com");
+        assertThat(member.gender).isEqualTo("MALE");
+        assertThat(member.phone).isEqualTo("0401020304");
+        assertThat(member.mobile).isEqualTo("0606060606");
+        assertThat(member.createdAt).isEqualTo("2020-08-28T10:00:00Z");
+        assertThat(member.creator).isEqualTo("user");
+    }
 
+    @Nested
+    class MembersPagination {
 
+        @Test
+        void fetch_members_with_default_pagination() {
+            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+
+            Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 2);
+
+            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(2);
+            List<MemberOverviewDTO> members = memberListDTO.members;
+            assertThat(members.get(0).lastName).isEqualTo("lastName1");
+            assertThat(members.get(0).firstName).isEqualTo("firstName1");
+            assertThat(members.get(0).email).isEqualTo("abc@def.com");
+            assertThat(members.get(1).lastName).isEqualTo("lastName2");
+            assertThat(members.get(1).firstName).isEqualTo("firstName2");
+            assertThat(members.get(1).email).isEqualTo("def@ghi.fr");
+        }
+
+        @Test
+        void fetch_members_with_pagination() {
+            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName4", "firstName4", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName5", "firstName5", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName6", "firstName6", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName7", "firstName7", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+
+            Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 7);
+
+            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=1", MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(7);
+            List<MemberOverviewDTO> members = memberListDTO.members;
+            assertThat(members).hasSize(2);
+            assertThat(members.get(0).lastName).isEqualTo("lastName1");
+            assertThat(members.get(0).firstName).isEqualTo("firstName1");
+            assertThat(members.get(1).lastName).isEqualTo("lastName2");
+            assertThat(members.get(1).firstName).isEqualTo("firstName2");
+
+            memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=2", MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(7);
+            members = memberListDTO.members;
+            assertThat(members).hasSize(2);
+            assertThat(members.get(0).lastName).isEqualTo("lastName3");
+            assertThat(members.get(0).firstName).isEqualTo("firstName3");
+            assertThat(members.get(1).lastName).isEqualTo("lastName4");
+            assertThat(members.get(1).firstName).isEqualTo("firstName4");
+
+            memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=3", MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(7);
+            members = memberListDTO.members;
+            assertThat(members).hasSize(2);
+            assertThat(members.get(0).lastName).isEqualTo("lastName5");
+            assertThat(members.get(0).firstName).isEqualTo("firstName5");
+            assertThat(members.get(1).lastName).isEqualTo("lastName6");
+            assertThat(members.get(1).firstName).isEqualTo("firstName6");
+
+            memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=4", MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(7);
+            members = memberListDTO.members;
+            assertThat(members).hasSize(1);
+            assertThat(members.get(0).lastName).isEqualTo("lastName7");
+            assertThat(members.get(0).firstName).isEqualTo("firstName7");
+        }
+
+        @Test
+        void fetch_members_with_default_ascending_by_lastname_sort() {
+            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+
+            Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
+
+            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(3);
+            List<MemberOverviewDTO> members = memberListDTO.members;
+            assertThat(members).hasSize(3);
+            assertThat(members.get(0).lastName).isEqualTo("lastName1");
+            assertThat(members.get(0).firstName).isEqualTo("firstName1");
+            assertThat(members.get(1).lastName).isEqualTo("lastName2");
+            assertThat(members.get(1).firstName).isEqualTo("firstName2");
+            assertThat(members.get(2).lastName).isEqualTo("lastName3");
+            assertThat(members.get(2).firstName).isEqualTo("firstName3");
+        }
+
+        @Test
+        void fetch_members_with_descending_lastname_sort() {
+            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+
+            Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
+
+            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?sortBy=lastName&sortOrder=DESC", MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(3);
+            List<MemberOverviewDTO> members = memberListDTO.members;
+            assertThat(members).hasSize(3);
+            assertThat(members.get(0).lastName).isEqualTo("lastName3");
+            assertThat(members.get(0).firstName).isEqualTo("firstName3");
+            assertThat(members.get(1).lastName).isEqualTo("lastName2");
+            assertThat(members.get(1).firstName).isEqualTo("firstName2");
+            assertThat(members.get(2).lastName).isEqualTo("lastName1");
+            assertThat(members.get(2).firstName).isEqualTo("firstName1");
+        }
+
+        @Test
+        void fetch_members_with_ascending_firstname_sort() {
+            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+            createMember("lastName1", "firstName2", "abc@def.com", "MALE", "0401020304", "0606060606");
+            createMember("lastName2", "firstName1", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+
+            Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
+
+            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?sortBy=firstName&sortOrder=ASC", MemberListDTO.class);
+            assertThat(memberListDTO.total).isEqualTo(3);
+            List<MemberOverviewDTO> members = memberListDTO.members;
+            assertThat(members).hasSize(3);
+            assertThat(members.get(0).lastName).isEqualTo("lastName2");
+            assertThat(members.get(0).firstName).isEqualTo("firstName1");
+            assertThat(members.get(1).lastName).isEqualTo("lastName1");
+            assertThat(members.get(1).firstName).isEqualTo("firstName2");
+            assertThat(members.get(2).lastName).isEqualTo("lastName3");
+            assertThat(members.get(2).firstName).isEqualTo("firstName3");
+        }
     }
 
     @Test
-    @Transactional
-    @WithMockUser
-    void fetch_all_members() throws Exception {
-        createMember("lastName1", "firstName1", "abc@def.com");
-        createMember("lastName2", "firstName2", "def@ghi.fr");
-
-        mockMvc.perform(get(MEMBERS))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.members", hasSize(2)))
-                .andExpect(jsonPath("$._embedded.members[0].lastName", equalTo("lastName1")))
-                .andExpect(jsonPath("$._embedded.members[0].firstName", equalTo("firstName1")))
-                .andExpect(jsonPath("$._embedded.members[0].email", equalTo("abc@def.com")))
-                .andExpect(jsonPath("$._embedded.members[1].lastName", equalTo("lastName2")))
-                .andExpect(jsonPath("$._embedded.members[1].firstName", equalTo("firstName2")))
-                .andExpect(jsonPath("$._embedded.members[1].email", equalTo("def@ghi.fr")))
-        ;
-    }
-
-    @Test
-    @Transactional
-    @WithMockUser
-    void update_a_member_and_fetch_the_new_value() throws Exception {
-        MvcResult memberResponse = createMember("lastName1", "firstName1", "abc@def.com");
-        String location = memberResponse.getResponse().getHeader(LOCATION);
-
-        String updatedMember = "{" +
-                "\"lastName\":\"Doe\", " +
-                "\"firstName\":\"John\"," +
-                "\"email\":\"john@doe.com\"" +
+    void a_user_can_change_the_address_of_a_member() {
+        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+        URI location = createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+        String addressJson = "{" +
+                "\"line1\": \"123 RUE VOLTAIRE\"," +
+                "\"line2\": \"ALLEE DES TULIPES\"," +
+                "\"line3\": \"LIEU-DIT\"," +
+                "\"city\": \"CITY\"," +
+                "\"zipCode\": \"12345\"" +
                 "}";
+        postRequest(location + "/changeAddress", addressJson);
 
-        mockMvc.perform(put(location)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(updatedMember))
-                .andExpect(status().isNoContent());
+        Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    MemberDTO memberDTO = authenticatedRequest().getForObject(location, MemberDTO.class);
+                    return memberDTO != null && memberDTO.address != null;
+                });
 
-        mockMvc.perform(get(location))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lastName", equalTo("Doe")))
-                .andExpect(jsonPath("$.firstName", equalTo("John")))
-                .andExpect(jsonPath("$.email", equalTo("john@doe.com")));
+        MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
+        assertThat(member.address.line1).isEqualTo("123 RUE VOLTAIRE");
+        assertThat(member.address.line2).isEqualTo("ALLEE DES TULIPES");
+        assertThat(member.address.line3).isEqualTo("LIEU-DIT");
+        assertThat(member.address.city).isEqualTo("CITY");
+        assertThat(member.address.zipCode).isEqualTo("12345");
 
     }
 
     @Test
-    @Transactional
-    @WithMockUser
-    void delete_a_member() throws Exception {
-        MvcResult memberResponse = createMember("Doe", "John", "john@doe.com");
-        String location = memberResponse.getResponse().getHeader(LOCATION);
+    @Disabled
+    void generate_1000_members() {
+        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+        IntStream.range(0, 1000).forEach(i -> {
+            URI location = createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+//            String addressJson = "{" +
+//                    "\"line1\": \"123 RUE VOLTAIRE\"," +
+//                    "\"line2\": \"ALLEE DES TULIPES\"," +
+//                    "\"line3\": \"LIEU-DIT\"," +
+//                    "\"city\": \"CITY\"," +
+//                    "\"zipCode\": \"12345\"" +
+//                    "}";
+//            postRequest(location + "/changeAddress", addressJson);
+        });
 
-        mockMvc.perform(delete(location))
-                .andExpect(status().isNoContent());
-        mockMvc.perform(get(location))
-                .andExpect(status().isNotFound());
     }
+
+    private TestRestTemplate authenticatedRequest() {
+        return testRestTemplate.withBasicAuth("user", "password");
+    }
+
 }

@@ -1,10 +1,6 @@
-package com.cloud.cmr.security.authentication;
+package com.cloud.cmr.configuration.security.authentication;
 
-import com.google.firebase.auth.FirebaseAuth;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,15 +10,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 
-/**
- * Authenticate a User on Firebase based on the Token ID.
- * Generates a Cookie for the user
- */
-public class FirebaseAuthenticationTokenFilter extends OncePerRequestFilter {
-
-    private static final Logger logger = LoggerFactory.getLogger(FirebaseAuthenticationTokenFilter.class);
+public abstract class AuthenticationTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpRequest, HttpServletResponse response, FilterChain filterChain)
@@ -42,24 +31,12 @@ public class FirebaseAuthenticationTokenFilter extends OncePerRequestFilter {
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             logger.error("Fail to authenticate.", ex);
+            return ;
         }
 
         filterChain.doFilter(httpRequest, response);
     }
 
-    /**
-     * @param authToken Firebase access token string
-     * @return the computed result
-     * @throws Exception
-     */
-    private Authentication getAndValidateAuthentication(String authToken) throws Exception {
-        var firebaseToken = FirebaseAuth.getInstance().verifyIdToken(authToken);
-        return new UsernamePasswordAuthenticationToken(firebaseToken, authToken, new ArrayList<>());
-    }
-
-    @Override
-    public void destroy() {
-        logger.debug("destroy():: invoke");
-    }
+    protected abstract Authentication getAndValidateAuthentication(String authToken) throws Exception;
 
 }

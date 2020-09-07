@@ -21,3 +21,9 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
+spring:
+  cloud:
+    gcp:
+      datastore:
+        namespace: ${DATASTORE_NAMESPACE:localtest}
