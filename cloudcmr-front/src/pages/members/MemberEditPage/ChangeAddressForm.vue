@@ -77,6 +77,7 @@
 import { memberService } from '@/services/member.service'
 import { validationMixin } from 'vuelidate'
 import { required } from 'vuelidate/lib/validators'
+import { mapActions } from 'vuex'
 
 export default {
     name: 'ChangeAddressForm',
@@ -124,9 +125,11 @@ export default {
         }
     },
     methods: {
+        ...mapActions('notifications', ['addSuccessNotification']),
         async handleChangeAddress() {
             await memberService.changeAddress(this.memberId, this.address)
             this.$emit('addressChanged', this.address)
+            this.addSuccessNotification({ message: 'Adresse modifiée' })
         },
         handleReinit() {
             this.address = JSON.parse(JSON.stringify(this.initialAddress))

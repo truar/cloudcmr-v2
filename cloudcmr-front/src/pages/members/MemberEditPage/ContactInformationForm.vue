@@ -94,6 +94,7 @@
 <script>
 import { validationMixin } from 'vuelidate'
 import { email, required } from 'vuelidate/lib/validators'
+import { mapActions } from 'vuex'
 
 export default {
     name: 'ContactInformationForm',
@@ -172,11 +173,13 @@ export default {
         }
     },
     methods: {
+        ...mapActions('notifications', ['addSuccessNotification']),
         handleReinit() {
             this.member = JSON.parse(JSON.stringify(this.initialMember))
         },
         handleChangeContactInformation() {
             this.$emit('memberChanged', this.member)
+            this.addSuccessNotification({ message: 'Adhérent modifié' })
         }
     }
 }
