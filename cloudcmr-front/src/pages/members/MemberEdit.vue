@@ -4,7 +4,7 @@
         <v-row>
             <v-col md="4">
                 <v-card :loading="loading">
-                    <v-form :key="tmpKey">
+                    <v-form>
                         <v-card-title>
                             <span class="text-h6"><span class="font-weight-medium">{{
                                     memberFullName
@@ -117,19 +117,64 @@
                 <v-tabs-items v-model="tab">
                     <v-tab-item>
                         <v-card flat>
-                            <v-card-text>
-                                <v-col cols="12">
-                                    <v-text-field
-                                        dense
-                                        label="Ligne 1"
-                                        v-model="member.address.line1"
-                                        type="text"
-                                    ></v-text-field>
-                                </v-col>
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-btn type="submit" dark color="blue darken-1">Enregistrer l'adresse</v-btn>
-                            </v-card-actions>
+                            <v-form id="changeAddressForm" @submit.prevent="handleChangeAddress">
+                                <v-card-text>
+                                    <v-row>
+                                        <v-col cols="12" md="6">
+                                            <v-text-field
+                                                dense
+                                                label="Numéro et libellé de la voie*"
+                                                v-model="member.address.line1"
+                                                type="text"
+                                                required
+                                            ></v-text-field>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col cols="12" md="6">
+                                            <v-text-field
+                                                dense
+                                                label="Complément d'adresse"
+                                                v-model="member.address.line2"
+                                                type="text"
+                                            ></v-text-field>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col cols="12" md="6">
+                                            <v-text-field
+                                                dense
+                                                label="Lieu-dit / Boite postal"
+                                                v-model="member.address.line3"
+                                                type="text"
+                                            ></v-text-field>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col cols="12" md="6">
+                                            <v-text-field
+                                                dense
+                                                label="Ville"
+                                                v-model="member.address.city"
+                                                type="text"
+                                            ></v-text-field>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col cols="12" md="6">
+                                            <v-text-field
+                                                dense
+                                                label="Code postal"
+                                                v-model="member.address.zipCode"
+                                                type="text"
+                                            ></v-text-field>
+                                        </v-col>
+                                    </v-row>
+                                </v-card-text>
+                                <v-card-actions>
+                                    <v-btn type="submit" dark color="blue darken-1">Enregistrer l'adresse</v-btn>
+                                </v-card-actions>
+                            </v-form>
                         </v-card>
                     </v-tab-item>
                 </v-tabs-items>
@@ -152,7 +197,6 @@ export default {
         return {
             tab: null,
             memberId: this.$route.params['memberId'],
-            tmpKey: Date.now(),
             memberBackup: {},
             member: {
                 lastName: '',
@@ -162,7 +206,11 @@ export default {
                 email: '',
                 mobile: '',
                 address: {
-                    line1: ''
+                    line1: '',
+                    line2: '',
+                    line3: '',
+                    city: '',
+                    zipCode: ''
                 }
             },
             loading: true
@@ -229,20 +277,28 @@ export default {
         birthDateErrors() {
             const errors = []
             if (!this.$v.member.birthDate.$dirty) return errors
-            !this.$v.member.birthDate.required && errors.push('Le date de naissance est obligatoire')
+            !this.$v.member.birthDate.required && errors.push('La date de naissance est obligatoire')
             return errors
         }
     },
     methods: {
         reinitMember() {
             this.member = JSON.parse(JSON.stringify(this.memberBackup))
-            this.tmpKey = Date.now()
+        },
+        async handleChangeAddress() {
+            await memberService.changeAddress(this.memberId, this.member.address)
         }
     },
     async created() {
         this.member = await memberService.fetchMember(this.memberId)
-        this.member.address = this.member.address || {}
-        this.member.address.line1 = this.member.address.line1 || ''
+        let emptyAddress = {
+            line1: '',
+            line2: '',
+            line3: '',
+            city: '',
+            zipCode: ''
+        }
+        this.member.address = this.member.address || emptyAddress
         this.memberBackup = JSON.parse(JSON.stringify(this.member))
         this.loading = false
     }

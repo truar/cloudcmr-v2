@@ -3,7 +3,8 @@ import axios from 'axios'
 export const memberService = {
     fetchAll,
     create,
-    fetchMember
+    fetchMember,
+    changeAddress
 }
 
 async function fetchAll(page, pageSize, sortBy, isDesc) {
@@ -28,4 +29,10 @@ async function create(lastName, firstName, gender, email, mobile, birthDate) {
 async function fetchMember(memberId) {
     const rawData = await axios.get(`/api/members/${memberId}`)
     return rawData.data
+}
+
+async function changeAddress(memberId, address) {
+    await axios.post(`/api/members/${memberId}/changeAddress`, {
+        ...address
+    })
 }
