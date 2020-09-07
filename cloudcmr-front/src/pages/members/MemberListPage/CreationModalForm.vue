@@ -176,7 +176,7 @@ export default {
         birthDateErrors() {
             const errors = []
             if (!this.$v.form.birthDate.$dirty) return errors
-            !this.$v.form.birthDate.required && errors.push('Le date de naissance est obligatoire')
+            !this.$v.form.birthDate.required && errors.push('La date de naissance est obligatoire')
             return errors
         }
     },
