@@ -1,6 +1,7 @@
 package com.cloud.cmr.exposition.member;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 public class MemberDTO {
     public String lastName;
@@ -12,15 +13,17 @@ public class MemberDTO {
     public Instant createdAt;
     public String creator;
     public AddressDTO address;
+    public LocalDate birthDate;
 
     public MemberDTO() {
     }
 
-    public MemberDTO(String lastName, String firstName, String email, String gender, String phone, String mobile, AddressDTO address, Instant createdAt, String creator) {
+    public MemberDTO(String lastName, String firstName, String email, String gender, LocalDate birthDate, String phone, String mobile, AddressDTO address, Instant createdAt, String creator) {
         this.lastName = lastName;
         this.firstName = firstName;
         this.email = email;
         this.gender = gender;
+        this.birthDate = birthDate;
         this.phone = phone;
         this.mobile = mobile;
         this.address = address;

@@ -1,5 +1,9 @@
 package com.cloud.cmr.exposition.member;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.time.LocalDate;
+
 public class CreateMemberRequest {
 
     public final String lastName;
@@ -8,9 +12,10 @@ public class CreateMemberRequest {
     public final String mobile;
     public final String gender;
     public final String phone;
-    public final String birthDate;
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    public final LocalDate birthDate;
 
-    public CreateMemberRequest(String lastName, String firstName, String email, String mobile, String gender, String phone, String birthDate) {
+    public CreateMemberRequest(String lastName, String firstName, String email, String mobile, String gender, String phone, LocalDate birthDate) {
         this.lastName = lastName;
         this.firstName = firstName;
         this.email = email;

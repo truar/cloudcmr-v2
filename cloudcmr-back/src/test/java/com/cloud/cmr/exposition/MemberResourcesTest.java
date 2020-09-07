@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -46,14 +47,15 @@ public class MemberResourcesTest {
         datastoreTemplate.deleteAll(Member.class);
     }
 
-    private URI createMember(String lastName, String firstName, String email, String gender, String phone, String mobile) {
+    private URI createMember(String lastName, String firstName, String email, String gender, String phone, String mobile, String birthDate) {
         String memberJson = "{" +
                 "\"lastName\":\"" + lastName + "\", " +
                 "\"firstName\":\"" + firstName + "\"," +
                 "\"email\":\"" + email + "\"," +
                 "\"gender\":\"" + gender + "\"," +
                 "\"phone\":\"" + phone + "\"," +
-                "\"mobile\":\"" + mobile + "\"" +
+                "\"mobile\":\"" + mobile + "\"," +
+                "\"birthDate\":\"1970-01-01\"" +
                 "}";
 
         ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
@@ -82,18 +84,19 @@ public class MemberResourcesTest {
     void create_a_new_member_and_fetch_it() {
         when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
         URI location = createMember("Doe", "John", "john@doe.com",
-                "MALE", "0401020304", "0606060606");
+                "MALE", "0401020304", "0606060606", "01/01/1970");
 
         Awaitility.await().atMost(10, TimeUnit.SECONDS)
                 .until(() -> authenticatedRequest().getForObject(location, MemberDTO.class) != null);
 
         MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
-        assertThat(member.lastName).isEqualTo("Doe");
+        assertThat(member.lastName).isEqualTo("DOE");
         assertThat(member.firstName).isEqualTo("John");
         assertThat(member.email).isEqualTo("john@doe.com");
         assertThat(member.gender).isEqualTo("MALE");
         assertThat(member.phone).isEqualTo("0401020304");
         assertThat(member.mobile).isEqualTo("0606060606");
+        assertThat(member.birthDate).isEqualTo(LocalDate.parse("1970-01-01"));
         assertThat(member.createdAt).isEqualTo("2020-08-28T10:00:00Z");
         assertThat(member.creator).isEqualTo("user");
     }
@@ -104,8 +107,8 @@ public class MemberResourcesTest {
         @Test
         void fetch_members_with_default_pagination() {
             when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
-            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
+            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
 
             Awaitility.await().atMost(10, TimeUnit.SECONDS)
                     .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 2);
@@ -113,24 +116,25 @@ public class MemberResourcesTest {
             MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(2);
             List<MemberOverviewDTO> members = memberListDTO.members;
-            assertThat(members.get(0).lastName).isEqualTo("lastName1");
-            assertThat(members.get(0).firstName).isEqualTo("firstName1");
+            assertThat(members).hasSize(2);
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEA");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
             assertThat(members.get(0).email).isEqualTo("abc@def.com");
-            assertThat(members.get(1).lastName).isEqualTo("lastName2");
-            assertThat(members.get(1).firstName).isEqualTo("firstName2");
+            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
+            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
             assertThat(members.get(1).email).isEqualTo("def@ghi.fr");
         }
 
         @Test
         void fetch_members_with_pagination() {
             when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
-            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName4", "firstName4", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName5", "firstName5", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName6", "firstName6", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName7", "firstName7", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
+            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMED", "FirstNameD", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMEE", "FirstNameE", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMEF", "FirstNameF", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMEG", "FirstNameG", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
 
             Awaitility.await().atMost(10, TimeUnit.SECONDS)
                     .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 7);
@@ -139,43 +143,43 @@ public class MemberResourcesTest {
             assertThat(memberListDTO.total).isEqualTo(7);
             List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(2);
-            assertThat(members.get(0).lastName).isEqualTo("lastName1");
-            assertThat(members.get(0).firstName).isEqualTo("firstName1");
-            assertThat(members.get(1).lastName).isEqualTo("lastName2");
-            assertThat(members.get(1).firstName).isEqualTo("firstName2");
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEA");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
+            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
+            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
 
             memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=2", MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(7);
             members = memberListDTO.members;
             assertThat(members).hasSize(2);
-            assertThat(members.get(0).lastName).isEqualTo("lastName3");
-            assertThat(members.get(0).firstName).isEqualTo("firstName3");
-            assertThat(members.get(1).lastName).isEqualTo("lastName4");
-            assertThat(members.get(1).firstName).isEqualTo("firstName4");
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEC");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameC");
+            assertThat(members.get(1).lastName).isEqualTo("LASTNAMED");
+            assertThat(members.get(1).firstName).isEqualTo("FirstNameD");
 
             memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=3", MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(7);
             members = memberListDTO.members;
             assertThat(members).hasSize(2);
-            assertThat(members.get(0).lastName).isEqualTo("lastName5");
-            assertThat(members.get(0).firstName).isEqualTo("firstName5");
-            assertThat(members.get(1).lastName).isEqualTo("lastName6");
-            assertThat(members.get(1).firstName).isEqualTo("firstName6");
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEE");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameE");
+            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEF");
+            assertThat(members.get(1).firstName).isEqualTo("FirstNameF");
 
             memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=4", MemberListDTO.class);
             assertThat(memberListDTO.total).isEqualTo(7);
             members = memberListDTO.members;
             assertThat(members).hasSize(1);
-            assertThat(members.get(0).lastName).isEqualTo("lastName7");
-            assertThat(members.get(0).firstName).isEqualTo("firstName7");
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEG");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameG");
         }
 
         @Test
         void fetch_members_with_default_ascending_by_lastname_sort() {
             when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
-            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
+            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
 
             Awaitility.await().atMost(10, TimeUnit.SECONDS)
                     .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
@@ -184,20 +188,20 @@ public class MemberResourcesTest {
             assertThat(memberListDTO.total).isEqualTo(3);
             List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(3);
-            assertThat(members.get(0).lastName).isEqualTo("lastName1");
-            assertThat(members.get(0).firstName).isEqualTo("firstName1");
-            assertThat(members.get(1).lastName).isEqualTo("lastName2");
-            assertThat(members.get(1).firstName).isEqualTo("firstName2");
-            assertThat(members.get(2).lastName).isEqualTo("lastName3");
-            assertThat(members.get(2).firstName).isEqualTo("firstName3");
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEA");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
+            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
+            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
+            assertThat(members.get(2).lastName).isEqualTo("LASTNAMEC");
+            assertThat(members.get(2).firstName).isEqualTo("FirstNameC");
         }
 
         @Test
         void fetch_members_with_descending_lastname_sort() {
             when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
-            createMember("lastName2", "firstName2", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
+            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
 
             Awaitility.await().atMost(10, TimeUnit.SECONDS)
                     .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
@@ -206,20 +210,20 @@ public class MemberResourcesTest {
             assertThat(memberListDTO.total).isEqualTo(3);
             List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(3);
-            assertThat(members.get(0).lastName).isEqualTo("lastName3");
-            assertThat(members.get(0).firstName).isEqualTo("firstName3");
-            assertThat(members.get(1).lastName).isEqualTo("lastName2");
-            assertThat(members.get(1).firstName).isEqualTo("firstName2");
-            assertThat(members.get(2).lastName).isEqualTo("lastName1");
-            assertThat(members.get(2).firstName).isEqualTo("firstName1");
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEC");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameC");
+            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
+            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
+            assertThat(members.get(2).lastName).isEqualTo("LASTNAMEA");
+            assertThat(members.get(2).firstName).isEqualTo("FirstNameA");
         }
 
         @Test
         void fetch_members_with_ascending_firstname_sort() {
             when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("lastName1", "firstName2", "abc@def.com", "MALE", "0401020304", "0606060606");
-            createMember("lastName2", "firstName1", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
-            createMember("lastName3", "firstName3", "def@ghi.fr", "FEMALE", "0102030405", "0707070707");
+            createMember("LASTNAMEA", "FirstNameB", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
+            createMember("LASTNAMEB", "FirstNameA", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
 
             Awaitility.await().atMost(10, TimeUnit.SECONDS)
                     .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
@@ -228,19 +232,19 @@ public class MemberResourcesTest {
             assertThat(memberListDTO.total).isEqualTo(3);
             List<MemberOverviewDTO> members = memberListDTO.members;
             assertThat(members).hasSize(3);
-            assertThat(members.get(0).lastName).isEqualTo("lastName2");
-            assertThat(members.get(0).firstName).isEqualTo("firstName1");
-            assertThat(members.get(1).lastName).isEqualTo("lastName1");
-            assertThat(members.get(1).firstName).isEqualTo("firstName2");
-            assertThat(members.get(2).lastName).isEqualTo("lastName3");
-            assertThat(members.get(2).firstName).isEqualTo("firstName3");
+            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEB");
+            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
+            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEA");
+            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
+            assertThat(members.get(2).lastName).isEqualTo("LASTNAMEC");
+            assertThat(members.get(2).firstName).isEqualTo("FirstNameC");
         }
     }
 
     @Test
     void a_user_can_change_the_address_of_a_member() {
         when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-        URI location = createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+        URI location = createMember("LASTNAME", "FirstName", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
         String addressJson = "{" +
                 "\"line1\": \"123 RUE VOLTAIRE\"," +
                 "\"line2\": \"ALLEE DES TULIPES\"," +
@@ -270,7 +274,7 @@ public class MemberResourcesTest {
     void generate_1000_members() {
         when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
         IntStream.range(0, 1000).forEach(i -> {
-            URI location = createMember("lastName1", "firstName1", "abc@def.com", "MALE", "0401020304", "0606060606");
+            URI location = createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
 //            String addressJson = "{" +
 //                    "\"line1\": \"123 RUE VOLTAIRE\"," +
 //                    "\"line2\": \"ALLEE DES TULIPES\"," +

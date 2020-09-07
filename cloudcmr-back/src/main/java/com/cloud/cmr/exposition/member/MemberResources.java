@@ -27,8 +27,8 @@ public class MemberResources {
     @PostMapping("/create")
     public ResponseEntity<Void> createMember(@RequestBody CreateMemberRequest createMemberRequest, Principal principal) {
         String memberId = memberApplicationService.create(createMemberRequest.lastName, createMemberRequest.firstName,
-                createMemberRequest.email, createMemberRequest.gender, createMemberRequest.phone,
-                createMemberRequest.mobile, principal.getName());
+                createMemberRequest.email, createMemberRequest.gender, createMemberRequest.birthDate,
+                createMemberRequest.phone, createMemberRequest.mobile, principal.getName());
         return ResponseEntity.created(buildMemberLocation(memberId)).build();
     }
 
@@ -73,11 +73,11 @@ public class MemberResources {
     private MemberDTO toMemberDTO(Member member) {
         AddressDTO addressDTO = toAddressDTO(member.getAddress());
         return new MemberDTO(member.getLastName(), member.getFirstName(), member.getEmail(), member.getGender().name(),
-                member.getPhone(), member.getMobile(), addressDTO, member.getCreatedAt(), member.getCreator());
+                member.getBirthDate(), member.getPhone(), member.getMobile(), addressDTO, member.getCreatedAt(), member.getCreator());
     }
 
     private AddressDTO toAddressDTO(Address address) {
-        if(address == null) {
+        if (address == null) {
             return null;
         }
         return new AddressDTO(address.getLine1(), address.getLine2(), address.getLine3(), address.getCity(), address.getZipCode());
