@@ -15,7 +15,7 @@
                 >
                     <template v-slot:top>
                         <v-toolbar flat color="white">
-                            <member-list-page-creation-modal-form></member-list-page-creation-modal-form>
+                            <creation-modal-form></creation-modal-form>
                         </v-toolbar>
                     </template>
                     <template v-slot:item.actions="{ item }">
@@ -36,13 +36,13 @@
 <script>
 import SimpleLayout from '@/pages/layouts/SimpleLayout.vue'
 import { mapActions, mapState } from 'vuex'
-import MemberListPageCreationModalForm from '@/pages/members/MemberListPage/CreationModalForm'
+import CreationModalForm from '@/pages/members/MemberListPage/CreationModalForm'
 
 export default {
     name: 'MemberListPage',
     components: {
         SimpleLayout,
-        MemberListPageCreationModalForm
+        CreationModalForm
     },
     data: () => ({
         headers: [
