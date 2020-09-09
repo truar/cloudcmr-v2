@@ -6,13 +6,16 @@ import com.cloud.cmr.domain.member.Address;
 import com.cloud.cmr.domain.member.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
 @RequestMapping("/members")
@@ -41,8 +44,12 @@ public class MemberResources {
 
     @GetMapping("/{memberId}")
     public MemberDTO getMember(@PathVariable String memberId) {
-        Member member = memberApplicationService.memberOfId(memberId);
-        return toMemberDTO(member);
+        try {
+            Member member = memberApplicationService.memberOfId(memberId);
+            return toMemberDTO(member);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(NOT_FOUND, "No member found with id: " + memberId, e);
+        }
     }
 
     @PostMapping("/{memberId}/changeAddress")

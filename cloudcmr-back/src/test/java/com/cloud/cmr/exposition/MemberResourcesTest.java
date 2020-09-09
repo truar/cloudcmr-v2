@@ -4,6 +4,9 @@ import com.cloud.cmr.domain.member.Member;
 import com.cloud.cmr.exposition.member.MemberDTO;
 import com.cloud.cmr.exposition.member.MemberListDTO;
 import com.cloud.cmr.exposition.member.MemberOverviewDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -99,6 +102,19 @@ public class MemberResourcesTest {
         assertThat(member.birthDate).isEqualTo(LocalDate.parse("1970-01-01"));
         assertThat(member.createdAt).isEqualTo("2020-08-28T10:00:00Z");
         assertThat(member.creator).isEqualTo("user");
+    }
+
+    @Test
+    void get_unknown_member_response_404() throws JsonProcessingException {
+        String memberId = "unknownMember";
+        String location = "/members/" + memberId;
+        ResponseEntity<String> forEntity = authenticatedRequest().getForEntity(location, String.class);
+        assertThat(forEntity.getStatusCodeValue()).isEqualTo(404);
+        String body = forEntity.getBody();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(body);
+        assertThat(root.at("/status").asText()).isEqualTo("404");
+        assertThat(root.at("/message").asText()).isEqualTo("No member found with id: " + memberId);
     }
 
     @Nested

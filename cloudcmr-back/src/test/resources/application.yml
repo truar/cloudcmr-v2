@@ -8,3 +8,7 @@ spring:
     gcp:
       datastore:
         namespace: localtest
+
+server:
+  error:
+    include-message: always
