@@ -21,6 +21,9 @@ export const notifications = {
         addSuccessNotification({ commit }, { message }) {
             commit('addNotification', { message, notificationStatus: 'success' })
         },
+        addErrorNotification({ commit }, { message }) {
+            commit('addNotification', { message, notificationStatus: 'error' })
+        },
         deleteNotification({ commit }, { notificationId }) {
             commit('deleteNotification', { notificationId })
         }
