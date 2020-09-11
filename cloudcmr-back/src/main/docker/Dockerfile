@@ -25,6 +25,7 @@ FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
 # Copy the jar to the production image from the builder stage.
 COPY --from=builder /app.jar /app.jar
 COPY --from=builder /appcds.jsa /appcds.jsa
+ENV JAVA_TOOL_OPTIONS="-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
 # Run the web service on container startup.
 CMD ["java", "-Xshare:on", "-XX:SharedArchiveFile=appcds.jsa", "-jar", "/app.jar"]

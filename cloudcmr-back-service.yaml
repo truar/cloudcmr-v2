@@ -14,16 +14,13 @@ spec:
       containerConcurrency: 80
       timeoutSeconds: 300
       containers:
-        - image: gcr.io/truaro-test-gcp/cloudcmr-back:${IMAGE_VERSION}
-          ports:
-            - containerPort: 8080
-          resources:
-            limits:
-              cpu: 1000m
-              memory: 512Mi
-        - env:
-            - name: JAVA_TOOL_OPTIONS
-              value: "-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+      - image: gcr.io/truaro-test-gcp/cloudcmr-back:${IMAGE_VERSION}
+        ports:
+          - containerPort: 8080
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
   traffic:
     - percent: 100
       latestRevision: true
