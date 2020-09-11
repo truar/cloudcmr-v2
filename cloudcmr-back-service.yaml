@@ -21,6 +21,9 @@ spec:
             limits:
               cpu: 1000m
               memory: 512Mi
+      - env:
+        - name: JAVA_TOOL_OPTIONS
+          value: "-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
   traffic:
     - percent: 100
       latestRevision: true

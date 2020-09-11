@@ -2,6 +2,9 @@ server:
   port: ${PORT:8080}
   servlet:
     context-path: /api
+  tomcat:
+    threads:
+      max: 80
 firebase:
   projectId: truaro-test-gcp
 
