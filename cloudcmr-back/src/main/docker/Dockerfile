@@ -10,7 +10,7 @@ RUN ./gradlew dependencies
 
 # Build a release artifact.
 COPY src ./src
-RUN ./gradlew build -x test
+RUN ./gradlew build shadowJar -x test -x bootJar
 RUN cp /app/build/libs/*.jar /app.jar
 
 ## Generate the appCDS
