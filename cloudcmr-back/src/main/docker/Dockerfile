@@ -28,4 +28,4 @@ COPY --from=builder /appcds.jsa /appcds.jsa
 #ENV JAVA_TOOL_OPTIONS="-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
 # Run the web service on container startup.
-CMD ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Xshare:on", "-XX:SharedArchiveFile=appcds.jsa", "-jar", "/app.jar"]
+CMD ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Xshare:on", "-XX:SharedArchiveFile=/appcds.jsa", "-jar", "/app.jar"]
