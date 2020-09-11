@@ -12,6 +12,7 @@ spec:
         autoscaling.knative.dev/maxScale: '3'
     spec:
       containerConcurrency: 80
+      timeoutSeconds: 300
       containers:
       - image: gcr.io/truaro-test-gcp/cloudcmr-back:${IMAGE_VERSION}
         ports:
@@ -23,7 +24,6 @@ spec:
       - env:
         - name: JAVA_TOOL_OPTIONS
           value: "-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-      timeoutSeconds: 300
   traffic:
     - percent: 100
       latestRevision: true
