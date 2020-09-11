@@ -11,7 +11,7 @@ RUN ./gradlew dependencies
 # Build a release artifact.
 COPY src ./src
 RUN ./gradlew build -x test
-COPY /app/build/libs/*.jar /app.jar
+RUN cp /app/build/libs/*.jar /app.jar
 
 ## Generate the appCDS
 RUN java -XX:DumpLoadedClassList=classes.lst -jar app.jar --kill
