@@ -20,7 +20,7 @@ RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
 RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile=/appcds.jsa --class-path /app.jar
 
 # Use AdoptOpenJDK for base image.
-FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+FROM adoptopenjdk/openjdk11:jdk-11.0.8_10-alpine
 
 # Copy the jar to the production image from the builder stage.
 COPY --from=builder /app.jar /app.jar
