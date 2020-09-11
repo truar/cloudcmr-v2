@@ -14,10 +14,10 @@ RUN ./gradlew build -x test
 RUN cp /app/build/libs/*.jar /app.jar
 
 ## Generate the appCDS
-RUN java -XX:DumpLoadedClassList=classes.lst -jar app.jar --kill
+RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
 # From the captured list of classes (based on execution coverage),
 # generate the AppCDS archive file.
-RUN java -Xshare:dump -XX:SharedClassListFile=classes.lst -XX:SharedArchiveFile=appcds.jsa --class-path app.jar
+RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile=/appcds.jsa --class-path /app.jar
 
 # Use AdoptOpenJDK for base image.
 FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
