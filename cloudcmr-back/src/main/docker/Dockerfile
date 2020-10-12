@@ -12,13 +12,13 @@ RUN ./gradlew dependencies
 COPY src ./src
 RUN ./gradlew build shadowJar -x test -x bootJar
 RUN cp /app/build/libs/*-all.jar /app.jar
-RUN md5sum /app.jar
+
 # Use AdoptOpenJDK for base image.
 FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
 
 # Copy the jar to the production image from the builder stage.
 COPY --from=builder /app.jar /app.jar
-RUN md5sum /app.jar
+
 ## Generate the appCDS
 RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
 # From the captured list of classes (based on execution coverage),

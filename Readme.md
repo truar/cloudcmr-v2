@@ -362,6 +362,22 @@ If I add the `appCDS` file generation in the builder part of my build, I got the
 A jar file is not the one used while building the shared archive file: /app.jar
 ```
 
+The error seems to be related to Kaniko cache... Maybe the app.jar file fetched from the cache is different.
+
+I try using md5sum to see if the md5 file is the same accross multiple builds:
+```
+RUN md5sum /app.jar
+> ca41778fdda7e1fe4fdfd8bb6012a9fa  /app.jar
+
+Same even after the copy
+> ca41778fdda7e1fe4fdfd8bb6012a9fa  /app.jar
+```
+
+When Kaniko is 
+
+
+
+
 Here is the DockerFile that generated the error :
 
 ```dockerfile
