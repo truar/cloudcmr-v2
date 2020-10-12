@@ -14,13 +14,13 @@ spec:
       containerConcurrency: 80
       timeoutSeconds: 300
       containers:
-        - image: gcr.io/truaro-test-gcp/cloudcmr-back:${IMAGE_VERSION}
-          ports:
-            - containerPort: 8080
-          resources:
-            limits:
-              cpu: 1000m
-              memory: 512Mi
+      - image: gcr.io/truaro-test-gcp/cloudcmr-back:${IMAGE_VERSION}
+        ports:
+          - containerPort: 8080
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
   traffic:
     - percent: 100
       latestRevision: true
