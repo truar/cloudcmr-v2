@@ -1,15 +1,54 @@
 steps:
-  - id: 'dockerize-back'
-    name: 'gcr.io/kaniko-project/executor:latest'
+  ## Deploy backend
+  - id: 'download-cached-gradle-dependencies'
+    name: gcr.io/cloud-builders/gsutil
+    entrypoint: bash
     args:
-      - --destination=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}
-      - --context=/workspace/cloudcmr-back
-      - --dockerfile=/workspace/cloudcmr-back/src/main/docker/Dockerfile
-      - --cache=true
-      - --cache-ttl=24h
+      - '-c'
+      - |
+        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/gradle-dependencies.tgz gradle-dependencies.tgz || exit 0
+        tar -zxf gradle-dependencies.tgz --directory / || exit 0
+    ## Use || exit 0 to have the error ignored if cache file does not exist
 
-# Deploy container image to Cloud Run
-  - id: "deploy-cloud-run"
+  - id: 'build-project'
+    name: adoptopenjdk/openjdk11:jdk-11.0.8_10
+    dir: cloudcmr-back
+    env:
+      - 'GRADLE_USER_HOME=/workspace/cloudcmr-back/.gradle'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        ./gradlew build shadowJar -x test -x bootJar --no-daemon
+        cp build/libs/*-all.jar ./app.jar
+
+  - id: 'dockerize-project'
+    name: gcr.io/cloud-builders/docker
+    dir: cloudcmr-back
+    args: ['build',
+           '-f', './src/main/docker/Dockerfile',
+           '-t', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}',
+           '-t', 'gcr.io/$PROJECT_ID/cloudcmr-back:latest',
+           '.']
+
+  - id: 'upload-cached-gradle-dependencies'
+    name: gcr.io/cloud-builders/gsutil
+    waitFor: ['build-project']
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        tar -zcf gradle-dependencies.tgz /workspace/cloudcmr-back/.gradle --exclude='daemon'
+        gsutil cp gradle-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/gradle-dependencies.tgz
+
+  - id: 'push-to-cloud-registry'
+    waitFor: ['dockerize-project']
+    name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}']
+
+  # Deploy container image to Cloud Run
+  - id: 'deploy-cloud-run'
+    waitFor: ['push-to-cloud-registry']
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: bash
     args:
@@ -25,7 +64,7 @@ steps:
           --member="allUsers" --role="roles/run.invoker"
 
   ## Deploy frontEnd
-  - id: "download-cached-yarn-dependencies"
+  - id: 'download-cached-yarn-dependencies'
     waitFor: ['-']
     name: gcr.io/cloud-builders/gsutil
     dir: cloudcmr-front
@@ -57,7 +96,7 @@ steps:
     args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
     dir: cloudcmr-front
 
-  - id: "upload-cached-yarn-dependencies"
+  - id: 'upload-cached-yarn-dependencies'
     waitFor: ['build-front']
     name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
@@ -67,3 +106,6 @@ steps:
       - |
         tar -zcf yarn-dependencies.tgz ./node_modules
         gsutil cp yarn-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz
+images:
+  - 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}'
+  - 'gcr.io/$PROJECT_ID/cloudcmr-back:latest'

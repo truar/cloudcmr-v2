@@ -172,7 +172,7 @@ The pipeline is pretty straightforward:
 For a first use, Cloud build is okay, but there is a lot of improvements:
 - You can manipulate only `steps` which lake of abstraction and reusability
 - No easy way of caching dependencies (example with yarn)
-- The `waitFor` are not very intuitive, and you need some thinking to use it properly
+- The `waitFor` is not very intuitive, and you need some thinking to use it properly
 
 To use it properly:
 - I created `cloudbuild.yaml` files, which contains the steps to build the application
@@ -186,7 +186,7 @@ Even if this is simple, I've tried to optimize it as much as I could, in order t
 [Official link](https://cloud.google.com/cloud-build/docs/speeding-up-builds) to get Google adive to improve build. 
 I used almost all of them.
 
-##### Using Kaniko cache
+##### Using Kaniko cache (deprecated, due to error with appCDS, kaniko cache has been disable)
 
 My Dockerfile is using the `gradle wrapper`, which download the gradle libs every time I build my docker image.
 
@@ -258,7 +258,7 @@ Improving start time is useful for :
 - Improving customer experience
 - Having a proper scalable system with quick failover
 
-Currently, with Spring Boot 2.3.3 and an OpenJDK11 on Docker, the start time is arougn 25seconds, which is causing timeout on first request.
+Currently, with Spring Boot 2.3.3 and an OpenJDK11 on Docker, the start time is around 25seconds, which is causing timeout on first request.
 
 Following the Cloud Run documentation, here are the steps done to decrease boot time
 
@@ -818,3 +818,21 @@ The application now starts **in 4 to 5 seconds**, instead of 15 seconds or more.
 ### End to end test
 > To be added
 
+
+WIP :
+```
+openssl md5 build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar 
+> MD5(build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar)= 77c1a782119e3eec86bad5245a3fd690
+```
+
+After clean and `./gradlew shadowJar`
+```
+openssl md5 build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar 
+> MD5(build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar)= 2753b07842eb7a92970190b0d9054c50
+```
+
+```
+java -XX:DumpLoadedClassList=build/libs/classes.lst -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar --kill
+java -Xshare:dump -XX:SharedClassListFile=build/libs/classes.lst -XX:SharedArchiveFile=build/libs/appcds.jsa --class-path build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+java -Xshare:on -XX:SharedArchiveFile=build/libs/appcds.jsa -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+```

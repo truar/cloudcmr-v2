@@ -7,8 +7,6 @@ import org.springframework.cloud.gcp.data.datastore.repository.config.EnableData
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.util.Arrays;
-
 @SpringBootApplication
 @EnableTransactionManagement
 @EnableDatastoreAuditing
