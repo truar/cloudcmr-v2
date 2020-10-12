@@ -25,7 +25,18 @@ RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
 # generate the AppCDS archive file.
 RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile=/appcds.jsa --class-path /app.jar
 
+# TODO : Try to find a way to make this work with Cloud Run automatically (using env configuration in YAML service file)
 #ENV JAVA_TOOL_OPTIONS="-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
+
+# TODO : Find a way to exclude DevTools dependencies from the ShadowJAr
 # Run the web service on container startup.
-CMD ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Xshare:on", "-XX:SharedArchiveFile=/appcds.jsa", "-jar", "/app.jar"]
+CMD ["java",
+    "-XX:+TieredCompilation",
+    "-XX:TieredStopAtLevel=1",
+    "-Xshare:on",
+    "-XX:SharedArchiveFile=/appcds.jsa",
+    # Disable DevTools as it is not disabled on cloud Run
+    "-Dspring.devtools.restart.enabled=false",
+    "-jar",
+    "/app.jar"]
