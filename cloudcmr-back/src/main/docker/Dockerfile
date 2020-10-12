@@ -29,14 +29,7 @@ RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile
 #ENV JAVA_TOOL_OPTIONS="-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
 
+# Disable DevTools as it is not disabled on cloud Run
 # TODO : Find a way to exclude DevTools dependencies from the ShadowJAr
 # Run the web service on container startup.
-CMD ["java",
-    "-XX:+TieredCompilation",
-    "-XX:TieredStopAtLevel=1",
-    "-Xshare:on",
-    "-XX:SharedArchiveFile=/appcds.jsa",
-    # Disable DevTools as it is not disabled on cloud Run
-    "-Dspring.devtools.restart.enabled=false",
-    "-jar",
-    "/app.jar"]
+CMD ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Xshare:on", "-XX:SharedArchiveFile=/appcds.jsa", "-Dspring.devtools.restart.enabled=false", "-jar", "/app.jar"]
