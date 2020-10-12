@@ -178,6 +178,7 @@ export default {
             this.member = JSON.parse(JSON.stringify(this.initialMember))
         },
         handleChangeContactInformation() {
+            // TODO send request to server
             this.$emit('memberChanged', this.member)
             this.addSuccessNotification({ message: 'Adhérent modifié' })
         }

@@ -94,7 +94,7 @@
                     v-bind="attrs"
                     @click="handleDeleteNotification(notification.index)"
                 >
-                    Close
+                    Fermer
                 </v-btn>
             </template>
         </v-snackbar>

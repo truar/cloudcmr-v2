@@ -87,7 +87,7 @@ export default {
             this.isMemberLoaded = true
         } catch (e) {
             this.addErrorNotification({ message: 'Adhérent inexistant' })
-            await this.$router.push('/members')
+            this.$router.push('/members')
         }
     }
 }

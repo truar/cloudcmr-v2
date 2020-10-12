@@ -375,6 +375,344 @@ Same even after the copy
 
 When Kaniko is 
 
+## Improving start time on cloud run
+### Resources
+
+As always, the Google documentation provides great tips for start time improvements for Cloud Run: [Link to doc](https://cloud.google.com/run/docs/tips/java)
+
+### What is my current start-time and why do improving it ?
+
+Improving start time is useful for :
+- Having a first response send to the client quickly
+- Avoiding request timeout and impacting negatively the customer experience
+- Improving customer experience
+- Having a proper scalable system with quick failover
+
+Currently, with Spring Boot 2.3.3 and an OpenJDK11 on Docker, the start time is arougn 25seconds, which is causing timeout on first request.
+
+Following the Cloud Run documentation, here are the steps done to decrease boot time
+
+### Playing with the JVM
+
+A first step is to disable some optimization when the JVM is running, with the `-XX:+TieredCompilation -XX:TieredStopAtLevel=1`.
+This can decrease performance on long run, but your mileage may vary.
+
+Then, you can also skip the JVM classes verification. This step is to make sure the classes you are executing haven't been modified
+by an attacker (man in the middle attack when transferring Jar files for instance). But, as I am running my Jar on Docker, 
+I hope my Docker image will "protect" this from happening. Therefore, I am confident I can safely use the `-noverify` options.
+
+Those 2 modifications have impacted the `cloudcmr-back-service.yaml`. The recommendation is to add an Environment variable when running the container:
+```yaml
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+        #... some configuration
+      - env:
+        - name: JAVA_TOOL_OPTIONS
+          value: "-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+```
+WARNING : This is not working with Cloud Run, I've added thos properties in the Dockerfile instead
+
+ 
+### Using the AppCDS
+We start seeing some articles about the AppCDS. Basically, the JVM will have to build a model in its memory representing the application classes and all
+its dependencies. This takes time during the startup, and is made everytime you run your application. In order to help the JVM, you can provide a
+cds file. By reading this file, the JVM will already have information about your application, and the boot time will be shorter, as there is less discovery to do.
+
+A MAJOR limitation with Spring-Boot is the famous FAT jar created by your build tool. The FAT jar embedded its JAR dependencies as JAR file. Unfortunatly, the AppCDS
+tools provided by the JVM are not able to analyse them, and so the resulting cds file will not help much the JVM, a most of the discovery still need to be done.
+
+In order to achieve this, the recommended way is to create your own custom FAT jar, with everything inside flatten. The Google documentation provides the 
+way to do so with Maven. As I am using Gradle, here is my configuration:
+```groovy
+// add a new import to transform files from the different jars
+import com.github.jengelman.gradle.plugins.shadow.transformers.PropertiesFileTransformer
+
+// add a new plugin
+plugins {
+    // ...
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
+}
+
+// add the manifest configuration (for the Main-class at least)
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'com.cloud.cmr.CloudCmrApplication'
+        )
+    }
+}
+
+// configure the shadowJar task
+shadowJar {
+    // exclusion of files META-INF/*.DSA|SF|RSA is automatic
+
+    // exclude this, otherwise the jdeps tool does not work
+    exclude 'module-info.class'
+    // Required for Spring
+    mergeServiceFiles()
+    append("META-INF/spring.handlers")
+    append("META-INF/spring.schemas")
+    append("META-INF/spring.tooling")
+    transform(PropertiesFileTransformer) {
+        paths = ["META-INF/spring.factories"]
+        mergeStrategy = "append"
+    }
+}
+```
+
+Then, you can run the `./gradlew shadowJar` task. This generates `build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar`. You can run it:
+```
+java -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+```
+
+Resources used:
+ - [Gradle shadow plugin](https://imperceptiblethoughts.com/shadow/getting-started/#default-java-groovy-tasks)
+ - [Article to configure shadow jar for Spring boot](https://suspendfun.com/2020/Shadow-gradle-plugin-to-create-fat-jar/)
+
+If at this step you have no error, carry on.
+
+Now, we will configure the AppCDS.
+
+```
+# First, create a file that lists the classes accessed by your application:
+java -XX:DumpLoadedClassList=build/libs/classes.lst -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar --appcds=true
+
+# Second, generate the JSA archive file
+java -Xshare:dump -XX:SharedClassListFile=build/libs/classes.lst -XX:SharedArchiveFile=build/libs/appcds.jsa --class-path build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+
+# Finally, Try to run it with the AppCDS archive file provided it and see if the start times decreases
+java -Xshare:on -XX:SharedArchiveFile=build/libs/appcds.jsa -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+```
+
+Let's add this to your Dockerfile to change the CD pipeline. Weirdly, the recommendation provided by Google was not working for me.
+If I add the `appCDS` file generation in the builder part of my build, I got the error, which I don't really understand, so I couldn't fix it.
+```
+A jar file is not the one used while building the shared archive file: /app.jar
+```
+
+The error seems to be related to Kaniko cache... Maybe the app.jar file fetched from the cache is different.
+
+I try using md5sum to see if the md5 file is the same accross multiple builds:
+```
+RUN md5sum /app.jar
+> ca41778fdda7e1fe4fdfd8bb6012a9fa  /app.jar
+
+Same even after the copy
+> ca41778fdda7e1fe4fdfd8bb6012a9fa  /app.jar
+```
+
+When Kaniko is 
+
+## Improving start time on cloud run
+### Resources
+
+As always, the Google documentation provides great tips for start time improvements for Cloud Run: [Link to doc](https://cloud.google.com/run/docs/tips/java)
+
+### What is my current start-time and why do improving it ?
+
+Improving start time is useful for :
+- Having a first response send to the client quickly
+- Avoiding request timeout and impacting negatively the customer experience
+- Improving customer experience
+- Having a proper scalable system with quick failover
+
+Currently, with Spring Boot 2.3.3 and an OpenJDK11 on Docker, the start time is arougn 25seconds, which is causing timeout on first request.
+
+Following the Cloud Run documentation, here are the steps done to decrease boot time
+
+### Playing with the JVM
+
+A first step is to disable some optimization when the JVM is running, with the `-XX:+TieredCompilation -XX:TieredStopAtLevel=1`.
+This can decrease performance on long run, but your mileage may vary.
+
+Then, you can also skip the JVM classes verification. This step is to make sure the classes you are executing haven't been modified
+by an attacker (man in the middle attack when transferring Jar files for instance). But, as I am running my Jar on Docker, 
+I hope my Docker image will "protect" this from happening. Therefore, I am confident I can safely use the `-noverify` options.
+
+Those 2 modifications have impacted the `cloudcmr-back-service.yaml`. The recommendation is to add an Environment variable when running the container:
+```yaml
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+        #... some configuration
+      - env:
+        - name: JAVA_TOOL_OPTIONS
+          value: "-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+```
+WARNING : This is not working with Cloud Run, I've added thos properties in the Dockerfile instead
+
+ 
+### Using the AppCDS
+We start seeing some articles about the AppCDS. Basically, the JVM will have to build a model in its memory representing the application classes and all
+its dependencies. This takes time during the startup, and is made everytime you run your application. In order to help the JVM, you can provide a
+cds file. By reading this file, the JVM will already have information about your application, and the boot time will be shorter, as there is less discovery to do.
+
+A MAJOR limitation with Spring-Boot is the famous FAT jar created by your build tool. The FAT jar embedded its JAR dependencies as JAR file. Unfortunatly, the AppCDS
+tools provided by the JVM are not able to analyse them, and so the resulting cds file will not help much the JVM, a most of the discovery still need to be done.
+
+In order to achieve this, the recommended way is to create your own custom FAT jar, with everything inside flatten. The Google documentation provides the 
+way to do so with Maven. As I am using Gradle, here is my configuration:
+```groovy
+// add a new import to transform files from the different jars
+import com.github.jengelman.gradle.plugins.shadow.transformers.PropertiesFileTransformer
+
+// add a new plugin
+plugins {
+    // ...
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
+}
+
+// add the manifest configuration (for the Main-class at least)
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'com.cloud.cmr.CloudCmrApplication'
+        )
+    }
+}
+
+// configure the shadowJar task
+shadowJar {
+    // exclusion of files META-INF/*.DSA|SF|RSA is automatic
+
+    // exclude this, otherwise the jdeps tool does not work
+    exclude 'module-info.class'
+    // Required for Spring
+    mergeServiceFiles()
+    append("META-INF/spring.handlers")
+    append("META-INF/spring.schemas")
+    append("META-INF/spring.tooling")
+    transform(PropertiesFileTransformer) {
+        paths = ["META-INF/spring.factories"]
+        mergeStrategy = "append"
+    }
+}
+```
+
+Then, you can run the `./gradlew shadowJar` task. This generates `build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar`. You can run it:
+```
+java -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+```
+
+Resources used:
+ - [Gradle shadow plugin](https://imperceptiblethoughts.com/shadow/getting-started/#default-java-groovy-tasks)
+ - [Article to configure shadow jar for Spring boot](https://suspendfun.com/2020/Shadow-gradle-plugin-to-create-fat-jar/)
+
+If at this step you have no error, carry on.
+
+Now, we will configure the AppCDS.
+
+```
+# First, create a file that lists the classes accessed by your application:
+java -XX:DumpLoadedClassList=build/libs/classes.lst -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar --appcds=true
+
+# Second, generate the JSA archive file
+java -Xshare:dump -XX:SharedClassListFile=build/libs/classes.lst -XX:SharedArchiveFile=build/libs/appcds.jsa --class-path build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+
+# Finally, Try to run it with the AppCDS archive file provided it and see if the start times decreases
+java -Xshare:on -XX:SharedArchiveFile=build/libs/appcds.jsa -jar build/libs/cloudcmr-back-1.0.0-SNAPSHOT-all.jar
+```
+
+Let's add this to your Dockerfile to change the CD pipeline. Weirdly, the recommendation provided by Google was not working for me.
+If I add the `appCDS` file generation in the builder part of my build, I got the error, which I don't really understand, so I couldn't fix it.
+```
+A jar file is not the one used while building the shared archive file: /app.jar
+```
+
+The error seems to be related to Kaniko cache... I can't yet reproduce this bug... Will need to delve deeper later
+
+#### And the result 
+
+The application now starts **in 4 to 5 seconds**, instead of 15 seconds or more. **It was worth it !**
+
+
+
+Here is the DockerFile that generated the error :
+
+```dockerfile
+# Use the gradlew to build image. Should be cached with kaniko
+FROM adoptopenjdk/openjdk11:jdk-11.0.8_10-alpine as builder
+
+# Copy local code to the container image.
+WORKDIR /app
+COPY build.gradle .
+COPY gradlew .
+COPY gradle ./gradle
+RUN ./gradlew dependencies
+
+# Build a release artifact.
+COPY src ./src
+RUN ./gradlew build shadowJar -x test -x bootJar
+RUN cp /app/build/libs/*-all.jar /app.jar
+
+########
+## Here are the relevant steps to generate inside the builder the appCDS file
+########
+
+## Generate the appCDS
+RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
+# From the captured list of classes (based on execution coverage),
+# generate the AppCDS archive file.
+RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile=/appcds.jsa --class-path /app.jar
+
+# Use AdoptOpenJDK for base image.
+FROM adoptopenjdk/openjdk11:jdk-11.0.8_10-alpine
+
+# Copy the jar to the production image from the builder stage.
+COPY --from=builder /app.jar /app.jar
+########
+Here I import the appCDS file from the builder
+########
+COPY --from=builder /appcds.jsa /appcds.jsa
+#ENV JAVA_TOOL_OPTIONS="-noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
+# Run the web service on container startup.
+CMD ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Xshare:on", "-XX:SharedArchiveFile=/appcds.jsa", "-jar", "/app.jar"]
+```
+
+How the problem was solved ? I've generated the appCDS in the last docker build step, which fixed the issue.
+Here is the correct Dockerfile:
+
+```dockerfile
+# Use the gradlew to build image. Should be cached with kaniko
+FROM adoptopenjdk/openjdk11:jdk-11.0.8_10-alpine as builder
+
+# Copy local code to the container image.
+WORKDIR /app
+COPY build.gradle .
+COPY gradlew .
+COPY gradle ./gradle
+RUN ./gradlew dependencies
+
+# Build a release artifact.
+COPY src ./src
+RUN ./gradlew build shadowJar -x test -x bootJar
+RUN cp /app/build/libs/*-all.jar /app.jar
+
+# Use AdoptOpenJDK for base image.
+FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+
+# Copy the jar to the production image from the builder stage.
+COPY --from=builder /app.jar /app.jar
+########
+## Here are the relevant steps to generate inside the builder the appCDS file
+########
+## Generate the appCDS
+RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
+# From the captured list of classes (based on execution coverage),
+# generate the AppCDS archive file.
+RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile=/appcds.jsa --class-path /app.jar
+
+# Run the web service on container startup.
+CMD ["java", "-Xshare:on", "-XX:SharedArchiveFile=/appcds.jsa", "-jar", "/app.jar"]
+```
+
+#### And the result 
+
+The application now starts **in 4 to 5 seconds**, instead of 15 seconds or more. **It was worth it !**
 
 
 
