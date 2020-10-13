@@ -3,9 +3,10 @@
         <template slot="subtitle">Adhérents</template>
         <v-row>
             <v-col md="4">
-                <contact-information-form v-if="isMemberLoaded"
-                                               :initial-member="member"
-                                          @memberUpdated="onChangeMember"
+                <contact-information-form
+                    v-if="isMemberLoaded"
+                    :initial-member="member"
+                    @memberUpdated="onChangeMember"
                 ></contact-information-form>
             </v-col>
             <v-col md="8">
@@ -33,7 +34,7 @@
                             :member-id="memberId"
                             :initial-address="member.address"
                             @addressChanged="onChangeAddress"
-                            ></change-address-form>
+                        ></change-address-form>
                     </v-tab-item>
                 </v-tabs-items>
             </v-col>
@@ -46,6 +47,7 @@ import SimpleLayout from '@/pages/layouts/SimpleLayout'
 import { memberService } from '@/services/member.service'
 import ContactInformationForm from '@/pages/members/MemberEditPage/ContactInformationForm'
 import ChangeAddressForm from '@/pages/members/MemberEditPage/ChangeAddressForm'
+import { mapActions } from 'vuex'
 
 export default {
     name: 'MemberEditPage',
@@ -63,6 +65,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('notifications', ['addErrorNotification']),
         onChangeAddress(address) {
             this.member.address = JSON.parse(JSON.stringify(address))
         },
@@ -71,16 +74,21 @@ export default {
         }
     },
     async created() {
-        this.member = await memberService.fetchMember(this.memberId)
-        const emptyAddress = {
-            line1: '',
-            line2: '',
-            line3: '',
-            city: '',
-            zipCode: ''
+        try {
+            this.member = await memberService.fetchMember(this.memberId)
+            const emptyAddress = {
+                line1: '',
+                line2: '',
+                line3: '',
+                city: '',
+                zipCode: ''
+            }
+            this.member.address = this.member.address || emptyAddress
+            this.isMemberLoaded = true
+        } catch (e) {
+            this.addErrorNotification({ message: 'Adhérent inexistant' })
+            this.$router.push('/members')
         }
-        this.member.address = this.member.address || emptyAddress
-        this.isMemberLoaded = true
     }
 }
 </script>

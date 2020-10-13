@@ -1,22 +1,21 @@
 package com.cloud.cmr.exposition.member;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+
+import java.time.LocalDate;
+
 public class CreateMemberRequest {
 
-    public final String lastName;
-    public final String firstName;
-    public final String email;
-    public final String mobile;
-    public final String gender;
-    public final String phone;
-    public final String birthDate;
+    public String lastName;
+    public String firstName;
+    public String email;
+    public String mobile;
+    public String gender;
+    public String phone;
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    public LocalDate birthDate;
 
-    public CreateMemberRequest(String lastName, String firstName, String email, String mobile, String gender, String phone, String birthDate) {
-        this.lastName = lastName;
-        this.firstName = firstName;
-        this.email = email;
-        this.mobile = mobile;
-        this.gender = gender;
-        this.phone = phone;
-        this.birthDate = birthDate;
-    }
 }

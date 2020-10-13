@@ -24,6 +24,9 @@ axios.interceptors.response.use(function(response) {
         const currentLocation = window.location.pathname
         router.push({ name: 'login', query: { from: currentLocation } })
     }
+    if (error.response.status === 404) {
+        throw Error('The requested resource does not exist')
+    }
 })
 
 new Vue({

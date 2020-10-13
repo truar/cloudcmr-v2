@@ -17,6 +17,9 @@ spec:
       - image: gcr.io/truaro-test-gcp/cloudcmr-back:${IMAGE_VERSION}
         ports:
           - containerPort: 8080
+        env:
+        - name: DATASTORE_NAMESPACE
+          value: ${DATASTORE_NAMESPACE}
         resources:
           limits:
             cpu: 1000m
