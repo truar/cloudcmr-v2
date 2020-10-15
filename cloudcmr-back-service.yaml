@@ -20,7 +20,7 @@ spec:
         env:
         - name: DATASTORE_NAMESPACE
           value: ${DATASTORE_NAMESPACE}
-        - name: JAVA_OPTIONS
+        - name: JAVA_TOOL_OPTIONS
           value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
         resources:
           limits:
