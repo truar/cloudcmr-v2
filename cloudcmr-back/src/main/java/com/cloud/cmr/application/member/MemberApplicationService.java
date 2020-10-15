@@ -28,6 +28,13 @@ public class MemberApplicationService {
     }
 
     @Transactional
+    public void changeContactInformation(String memberId, String lastName, String firstName, String email, String gender, LocalDate birthDate, String phone, String mobile) {
+        Member member = memberRepository.findById(memberId);
+        member.changeContactInformation(lastName, firstName, email, birthDate, Gender.valueOf(gender), new PhoneNumber(phone), new PhoneNumber(mobile));
+        memberRepository.save(member);
+    }
+
+    @Transactional
     public void changeAddressOfMember(String memberId, String line1, String line2, String line3, String city, String zipCode) {
         Member member = memberRepository.findById(memberId);
         member.changeAddress(new Address(line1, line2, line3, city, zipCode));

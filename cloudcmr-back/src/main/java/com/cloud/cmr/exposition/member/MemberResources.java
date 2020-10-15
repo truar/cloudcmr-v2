@@ -57,6 +57,13 @@ public class MemberResources {
         memberApplicationService.changeAddressOfMember(memberId, changeAddressRequest.line1, changeAddressRequest.line2, changeAddressRequest.line3, changeAddressRequest.city, changeAddressRequest.zipCode);
     }
 
+    @PostMapping("/{memberId}/changeContactInformation")
+    public void getMember(@PathVariable String memberId, @RequestBody ChangeContactInformationRequest changeContactInformationRequest) {
+        memberApplicationService.changeContactInformation(memberId, changeContactInformationRequest.lastName, changeContactInformationRequest.firstName,
+                changeContactInformationRequest.email, changeContactInformationRequest.gender, changeContactInformationRequest.birthDate,
+                changeContactInformationRequest.phone, changeContactInformationRequest.mobile);
+    }
+
     @GetMapping
     public MemberListDTO getAllMembers(@RequestParam(defaultValue = "1") Integer page,
                                        @RequestParam(defaultValue = "20") Integer pageSize,

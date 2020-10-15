@@ -6,7 +6,8 @@
                 <contact-information-form
                     v-if="isMemberLoaded"
                     :initial-member="member"
-                    @memberUpdated="onChangeMember"
+                    :member-id="memberId"
+                    @memberChanged="onChangeMember"
                 ></contact-information-form>
             </v-col>
             <v-col md="8">
@@ -69,8 +70,8 @@ export default {
         onChangeAddress(address) {
             this.member.address = JSON.parse(JSON.stringify(address))
         },
-        onChangeMember(member) {
-            this.member = JSON.parse(JSON.stringify(member))
+        async onChangeMember(member) {
+            this.member = await memberService.fetchMember(this.memberId)
         }
     },
     async created() {

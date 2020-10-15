@@ -128,4 +128,14 @@ public class Member {
     public void changeAddress(Address address) {
         this.address = address;
     }
+
+    public void changeContactInformation(String lastName, String firstName, String email, LocalDate birthDate, Gender gender, PhoneNumber phone, PhoneNumber mobile) {
+        this.setLastName(lastName);
+        this.setFirstName(firstName);
+        this.email = email;
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.phone = phone;
+        this.mobile = mobile;
+    }
 }
