@@ -95,16 +95,23 @@
 import { validationMixin } from 'vuelidate'
 import { email, required } from 'vuelidate/lib/validators'
 import { mapActions } from 'vuex'
+import { memberService } from '@/services/member.service'
 
 export default {
     name: 'ContactInformationForm',
     mixins: [validationMixin],
     props: {
+        memberId: String,
         initialMember: Object
     },
     data: function() {
         return {
             member: JSON.parse(JSON.stringify(this.initialMember))
+        }
+    },
+    watch: {
+        initialMember: function(newInitialMember) {
+            this.member = JSON.parse(JSON.stringify(newInitialMember))
         }
     },
     validations: {
@@ -177,8 +184,8 @@ export default {
         handleReinit() {
             this.member = JSON.parse(JSON.stringify(this.initialMember))
         },
-        handleChangeContactInformation() {
-            // TODO send request to server
+        async handleChangeContactInformation() {
+            await memberService.changeContactInformation(this.memberId, this.member)
             this.$emit('memberChanged', this.member)
             this.addSuccessNotification({ message: 'Adhérent modifié' })
         }

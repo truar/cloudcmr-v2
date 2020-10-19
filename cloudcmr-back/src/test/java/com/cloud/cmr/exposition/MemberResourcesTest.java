@@ -282,7 +282,37 @@ public class MemberResourcesTest {
         assertThat(member.address.line3).isEqualTo("LIEU-DIT");
         assertThat(member.address.city).isEqualTo("CITY");
         assertThat(member.address.zipCode).isEqualTo("12345");
+    }
 
+    @Test
+    void a_user_can_change_a_member_contact_information() {
+        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
+
+        URI location = createMember("LASTNAME", "FirstName", "abc@def.com", "MALE", "0101010101", "0601010101", "01/01/1980");
+        String contactInformationJson = "{" +
+                "\"lastName\":\"doe\", " +
+                "\"firstName\":\"John\"," +
+                "\"email\":\"john@doe.com\"," +
+                "\"gender\":\"MALE\"," +
+                "\"phone\":\"0401020304\"," +
+                "\"mobile\":\"0606060606\"," +
+                "\"birthDate\":\"01/01/1970\"" +
+                "}";
+        postRequest(location + "/changeContactInformation", contactInformationJson);
+
+        Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> authenticatedRequest().getForObject(location, MemberDTO.class) != null);
+
+        MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
+        assertThat(member.lastName).isEqualTo("DOE");
+        assertThat(member.firstName).isEqualTo("John");
+        assertThat(member.email).isEqualTo("john@doe.com");
+        assertThat(member.gender).isEqualTo("MALE");
+        assertThat(member.phone).isEqualTo("0401020304");
+        assertThat(member.mobile).isEqualTo("0606060606");
+        assertThat(member.birthDate).isEqualTo(LocalDate.parse("1970-01-01"));
+        assertThat(member.createdAt).isEqualTo("2020-08-28T10:00:00Z");
+        assertThat(member.creator).isEqualTo("user");
     }
 
     @Test

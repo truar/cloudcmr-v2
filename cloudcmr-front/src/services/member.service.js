@@ -4,7 +4,8 @@ export const memberService = {
     fetchAll,
     create,
     fetchMember,
-    changeAddress
+    changeAddress,
+    changeContactInformation
 }
 
 async function fetchAll(page, pageSize, sortBy, isDesc) {
@@ -34,5 +35,11 @@ async function fetchMember(memberId) {
 async function changeAddress(memberId, address) {
     await axios.post(`/api/members/${memberId}/changeAddress`, {
         ...address
+    })
+}
+
+async function changeContactInformation(memberId, contactInformation) {
+    await axios.post(`/api/members/${memberId}/changeContactInformation`, {
+        ...contactInformation
     })
 }
