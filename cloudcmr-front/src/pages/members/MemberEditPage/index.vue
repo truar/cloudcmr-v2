@@ -2,6 +2,16 @@
     <simple-layout>
         <template slot="subtitle">Adhérents</template>
         <v-row>
+            <v-col>
+                <v-btn text link to="/members">
+                    <v-icon left>
+                        mdi-arrow-left
+                    </v-icon>
+                    Retour à la liste
+                </v-btn>
+            </v-col>
+        </v-row>
+        <v-row>
             <v-col md="4">
                 <contact-information-form
                     v-if="isMemberLoaded"
