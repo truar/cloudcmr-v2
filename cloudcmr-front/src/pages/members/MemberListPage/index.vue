@@ -15,7 +15,18 @@
                 >
                     <template v-slot:top>
                         <v-toolbar flat color="white">
-                            <creation-modal-form></creation-modal-form>
+                            <v-row>
+                                <v-col md="11">
+                                    <creation-modal-form></creation-modal-form>
+                                </v-col>
+                                <v-col :style="{'text-align': 'center'}">
+                                    <v-btn fab outlined small color="primary" @click="refreshTable">
+                                        <v-icon>
+                                            mdi-refresh
+                                        </v-icon>
+                                    </v-btn>
+                                </v-col>
+                            </v-row>
                         </v-toolbar>
                     </template>
                     <template v-slot:item.actions="{ item }">
@@ -68,6 +79,9 @@ export default {
         ...mapActions('members', ['fetchAll', 'updatePagination']),
         newMember() {
             this.showCreationForm = true
+        },
+        refreshTable() {
+            this.fetchAll()
         },
         updateOptions(options) {
             const { page, itemsPerPage } = options
