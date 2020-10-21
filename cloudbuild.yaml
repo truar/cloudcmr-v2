@@ -23,8 +23,7 @@ steps:
     args:
       - '-c'
       - |
-        ./mvnw -X install -DskipTests
-        ls -alR /root/.m2
+        ./mvnw install -DskipTests
         cp target/*-all.jar ./app.jar
 
   - id: 'dockerize-project'
