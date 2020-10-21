@@ -3,6 +3,9 @@ steps:
   - id: 'download-cached-maven-dependencies'
     name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     args:
       - '-c'
       - |
@@ -14,11 +17,14 @@ steps:
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
     dir: cloudcmr-back
     entrypoint: 'bash'
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     args:
       - '-c'
       - |
         ./mvnw -X install -DskipTests
-        ls -alR /
+        ls -alR /root/.m2
         cp target/*-all.jar ./app.jar
 
   - id: 'dockerize-project'
@@ -34,10 +40,13 @@ steps:
     name: gcr.io/cloud-builders/gsutil
     waitFor: ['build-project']
     entrypoint: bash
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     args:
       - '-c'
       - |
-        tar -zcf maven-dependencies.tgz /workspace/cloudcmr-back/.maven --exclude='daemon'
+        tar -zcf maven-dependencies.tgz /root/.m2
         gsutil cp maven-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz
 
   - id: 'push-to-cloud-registry'
