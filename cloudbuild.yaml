@@ -1,26 +1,25 @@
 steps:
   ## Deploy backend
-  - id: 'download-cached-gradle-dependencies'
+  - id: 'download-cached-maven-dependencies'
     name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
     args:
       - '-c'
       - |
-        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/gradle-dependencies.tgz gradle-dependencies.tgz || exit 0
-        tar -zxf gradle-dependencies.tgz --directory / || exit 0
+        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz maven-dependencies.tgz || exit 0
+        tar -zxf maven-dependencies.tgz --directory / || exit 0
     ## Use || exit 0 to have the error ignored if cache file does not exist
 
   - id: 'build-project'
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
     dir: cloudcmr-back
-    env:
-      - 'GRADLE_USER_HOME=/workspace/cloudcmr-back/.gradle'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        ./gradlew build shadowJar -x test -x bootJar --no-daemon
-        cp build/libs/*-all.jar ./app.jar
+        ./mvnw -X install -DskipTests
+        ls -alR /
+        cp target/*-all.jar ./app.jar
 
   - id: 'dockerize-project'
     name: gcr.io/cloud-builders/docker
@@ -31,15 +30,15 @@ steps:
            '-t', 'gcr.io/$PROJECT_ID/cloudcmr-back:latest',
            '.']
 
-  - id: 'upload-cached-gradle-dependencies'
+  - id: 'upload-cached-maven-dependencies'
     name: gcr.io/cloud-builders/gsutil
     waitFor: ['build-project']
     entrypoint: bash
     args:
       - '-c'
       - |
-        tar -zcf gradle-dependencies.tgz /workspace/cloudcmr-back/.gradle --exclude='daemon'
-        gsutil cp gradle-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/gradle-dependencies.tgz
+        tar -zcf maven-dependencies.tgz /workspace/cloudcmr-back/.maven --exclude='daemon'
+        gsutil cp maven-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz
 
   - id: 'push-to-cloud-registry'
     waitFor: ['dockerize-project']
