@@ -1,6 +1,5 @@
 package com.cloud.cmr.cloudcmrfunctions;
 
-import com.google.common.primitives.UnsignedLong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +10,7 @@ import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.function.Consumer;
 
 @SpringBootApplication
@@ -57,8 +56,8 @@ public class ImportMembersFunction {
         private String bucket;
         private String name;
         private String metageneration;
-        private LocalDateTime timeCreated;
-        private LocalDateTime updated;
+        private Date timeCreated;
+        private Date updated;
         private String selfLink;
         private String mediaLink;
         private long size;
@@ -111,19 +110,19 @@ public class ImportMembersFunction {
             this.metageneration = metageneration;
         }
 
-        public LocalDateTime getTimeCreated() {
+        public Date getTimeCreated() {
             return timeCreated;
         }
 
-        public void setTimeCreated(LocalDateTime timeCreated) {
+        public void setTimeCreated(Date timeCreated) {
             this.timeCreated = timeCreated;
         }
 
-        public LocalDateTime getUpdated() {
+        public Date getUpdated() {
             return updated;
         }
 
-        public void setUpdated(LocalDateTime updated) {
+        public void setUpdated(Date updated) {
             this.updated = updated;
         }
     }
