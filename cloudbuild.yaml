@@ -82,11 +82,11 @@ steps:
       - functions
       - deploy
       - import-members-function
-      - --entry-point org.springframework.cloud.function.adapter.gcp.GcfJarLauncher \
-      - --runtime java11 \
-      - --trigger-resource ${_UPLOAD_BUCKET_NAME} \
-      - --trigger-event google.storage.object.finalize \
-      - --source target/deploy \
+      - --entry-point org.springframework.cloud.function.adapter.gcp.GcfJarLauncher
+      - --runtime java11
+      - --trigger-resource ${_UPLOAD_BUCKET_NAME}
+      - --trigger-event google.storage.object.finalize
+      - --source target/deploy
       - --memory 512MB
 
   - id: 'upload-cached-maven-dependencies'
