@@ -2,7 +2,6 @@ package com.cloud.cmr.cloudcmrfunctions;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 
 import java.util.function.Consumer;
@@ -14,7 +13,7 @@ public class ImportMembersFunction {
         SpringApplication.run(ImportMembersFunction.class, args);
     }
 
-    private ImportMembersService importMembersService;
+    private final ImportMembersService importMembersService;
 
     public ImportMembersFunction(ImportMembersService importMembersService) {
         this.importMembersService = importMembersService;

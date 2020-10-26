@@ -48,7 +48,7 @@ class ImportMembersFunctionTests {
     private GcpStorageResourceLoader gcpStorageResourceLoader;
 
     @Test
-    void test_basic() {
+    void batch_members_request_is_sent_when_receiving_uploaded_file_event() {
         createExpectationForRestCall();
         GscEvent gscEvent = new GscEvent();
         gscEvent.setBucket(BUCKET_NAME);
