@@ -15,7 +15,7 @@ steps:
 
   - id: 'build-project'
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
-    dir: cloudcmr-back
+    dir: cloudcmr-server
     entrypoint: bash
     volumes:
       - name: 'maven-repository'
@@ -28,7 +28,7 @@ steps:
 
   - id: 'dockerize-project'
     name: gcr.io/cloud-builders/docker
-    dir: cloudcmr-back
+    dir: cloudcmr-server/cloudcmr-back
     args: ['build',
            '-f', './src/main/docker/Dockerfile',
            '-t', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}',
@@ -62,23 +62,10 @@ steps:
   #########################################
   #### Deploy Functions
   #########################################
-  - id: 'build-functions'
-    waitFor: ['download-cached-maven-dependencies']
-    name: adoptopenjdk/openjdk11:jdk-11.0.8_10
-    dir: importMembersFunction
-    entrypoint: bash
-    volumes:
-      - name: 'maven-repository'
-        path: '/root/.m2'
-    args:
-      - '-c'
-      - |
-        ./mvnw install -DskipTests
-
   - id: 'deploy-import-members-function'
-    waitFor: ['build-functions']
+    waitFor: ['build-project']
     name: gcr.io/cloud-builders/gcloud
-    dir: importMembersFunction
+    dir: cloudcmr-server/importMembersFunction
     entrypoint: bash
     args:
       - '-c'
@@ -93,7 +80,7 @@ steps:
           --memory 512MB
 
   - id: 'upload-cached-maven-dependencies'
-    waitFor: ['build-project', 'build-functions']
+    waitFor: ['build-project']
     name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
     volumes:

@@ -1,5 +1,0 @@
-spring:
-  cloud:
-    gcp:
-      datastore:
-        namespace: ${DATASTORE_NAMESPACE:localtest}
