@@ -16,7 +16,7 @@ steps:
   - id: 'build-project'
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
     dir: cloudcmr-back
-    entrypoint: 'bash'
+    entrypoint: bash
     volumes:
       - name: 'maven-repository'
         path: '/root/.m2'
@@ -37,13 +37,13 @@ steps:
 
   - id: 'push-to-cloud-registry'
     waitFor: ['dockerize-project']
-    name: 'gcr.io/cloud-builders/docker'
+    name: gcr.io/cloud-builders/docker
     args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}']
 
   # Deploy container image to Cloud Run
   - id: 'deploy-cloud-run'
     waitFor: ['push-to-cloud-registry']
-    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    name: gcr.io/cloud-builders/gcloud
     entrypoint: bash
     args:
       - '-c'
@@ -65,7 +65,7 @@ steps:
     waitFor: ['download-cached-maven-dependencies']
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
     dir: importMembersFunction
-    entrypoint: 'bash'
+    entrypoint: bash
     volumes:
       - name: 'maven-repository'
         path: '/root/.m2'
@@ -75,8 +75,8 @@ steps:
         ./mvnw install -DskipTests
 
   - id: 'deploy-import-members-function'
-    name: 'gcr.io/cloud-builders/gcloud'
     waitFor: ['build-functions']
+    name: gcr.io/cloud-builders/gcloud
     dir: importMembersFunction
     entrypoint: bash
     args:
@@ -92,8 +92,8 @@ steps:
           --memory 512MB
 
   - id: 'upload-cached-maven-dependencies'
-    name: gcr.io/cloud-builders/gsutil
     waitFor: ['build-project', 'build-functions']
+    name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
     volumes:
       - name: 'maven-repository'
@@ -124,6 +124,7 @@ steps:
     entrypoint: yarn
     dir: cloudcmr-front
     args: ['install', '--silent']
+
   - id: 'build-front'
     waitFor: ['install-yarn']
     name: node
@@ -133,9 +134,10 @@ steps:
       - '-c'
       - |
         VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
+
   - id: 'deploy-firebase'
-    name: gcr.io/${PROJECT_ID}/firebase
     waitFor: ['build-front']
+    name: gcr.io/${PROJECT_ID}/firebase
     args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
     dir: cloudcmr-front
 
@@ -149,6 +151,7 @@ steps:
       - |
         tar -zcf yarn-dependencies.tgz ./node_modules
         gsutil cp yarn-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz
+
 images:
   - 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}'
   - 'gcr.io/$PROJECT_ID/cloudcmr-back:latest'
