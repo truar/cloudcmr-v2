@@ -78,16 +78,18 @@ steps:
     name: 'gcr.io/cloud-builders/gcloud'
     waitFor: ['build-functions']
     dir: importMembersFunction
+    entrypoint: bash
     args:
-      - functions
-      - deploy
-      - import-members-function
-      - --entry-point org.springframework.cloud.function.adapter.gcp.GcfJarLauncher
-      - --runtime java11
-      - --trigger-resource ${_UPLOAD_BUCKET_NAME}
-      - --trigger-event google.storage.object.finalize
-      - --source target/deploy
-      - --memory 512MB
+      - '-c'
+      - |
+        gcloud functions deploy import-members-function \
+          --region europe-west2 \
+          --entry-point org.springframework.cloud.function.adapter.gcp.GcfJarLauncher \
+          --runtime java11 \
+          --trigger-resource ${_UPLOAD_BUCKET_NAME} \
+          --trigger-event google.storage.object.finalize \
+          --source target/deploy \
+          --memory 512MB
 
   - id: 'upload-cached-maven-dependencies'
     name: gcr.io/cloud-builders/gsutil
