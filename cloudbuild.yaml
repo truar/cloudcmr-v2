@@ -24,7 +24,7 @@ steps:
       - '-c'
       - |
         ./mvnw install -DskipTests
-        cp cloudcmr-back/target/*-all.jar ./app.jar
+        cp cloudcmr-back/target/*-all.jar cloudcmr-back/app.jar
 
   - id: 'dockerize-project'
     name: gcr.io/cloud-builders/docker
