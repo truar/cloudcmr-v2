@@ -35,19 +35,6 @@ steps:
            '-t', 'gcr.io/$PROJECT_ID/cloudcmr-back:latest',
            '.']
 
-  - id: 'upload-cached-maven-dependencies'
-    name: gcr.io/cloud-builders/gsutil
-    waitFor: ['build-project']
-    entrypoint: bash
-    volumes:
-      - name: 'maven-repository'
-        path: '/root/.m2'
-    args:
-      - '-c'
-      - |
-        tar -zcf maven-dependencies.tgz /root/.m2
-        gsutil cp maven-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz
-
   - id: 'push-to-cloud-registry'
     waitFor: ['dockerize-project']
     name: 'gcr.io/cloud-builders/docker'
@@ -71,7 +58,53 @@ steps:
           --platform=managed --region=europe-west1 \
           --member="allUsers" --role="roles/run.invoker"
 
-  ## Deploy frontEnd
+  #########################################
+  #### Deploy Functions
+  #########################################
+  - id: 'build-functions'
+    waitFor: ['download-cached-maven-dependencies']
+    name: adoptopenjdk/openjdk11:jdk-11.0.8_10
+    dir: importMembersFunction
+    entrypoint: 'bash'
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
+    args:
+      - '-c'
+      - |
+        ./mvnw install -DskipTests
+
+  - id: 'deploy-import-members-function'
+    name: 'gcr.io/cloud-builders/gcloud'
+    waitFor: ['build-functions']
+    dir: importMembersFunction
+    args:
+      - functions
+      - deploy
+      - import-members-function
+      - --entry-point org.springframework.cloud.function.adapter.gcp.GcfJarLauncher \
+      - --runtime java11 \
+      - --trigger-resource ${_UPLOAD_BUCKET_NAME} \
+      - --trigger-event google.storage.object.finalize \
+      - --source target/deploy \
+      - --memory 512MB
+
+  - id: 'upload-cached-maven-dependencies'
+    name: gcr.io/cloud-builders/gsutil
+    waitFor: ['build-project', 'build-functions']
+    entrypoint: bash
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
+    args:
+      - '-c'
+      - |
+        tar -zcf maven-dependencies.tgz /root/.m2
+        gsutil cp maven-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz
+
+  #########################################
+  #### Deploy frontEnd
+  #########################################
   - id: 'download-cached-yarn-dependencies'
     waitFor: ['-']
     name: gcr.io/cloud-builders/gsutil
