@@ -35,14 +35,17 @@ public class ImportMembersFunction {
             System.out.println("size = " + message.getSize());
             System.out.println("mediaLink = " + message.getMediaLink());
             System.out.println("selfLink = " + message.getSelfLink());
-            Resource resource = context.getResource(String.format("gs://%s/%s", message.getBucket(), message.getName()));
-            try {
-                String s = StreamUtils.copyToString(
-                        resource.getInputStream(),
-                        Charset.defaultCharset());
-                System.out.println(s);
-            } catch (IOException e) {
-                e.printStackTrace();
+            String resourceLocation = String.format("gs://%s/%s", message.getBucket(), message.getName());
+            Resource resource = context.getResource(resourceLocation);
+            if (resource.exists()) {
+                try {
+                    String s = StreamUtils.copyToString(
+                            resource.getInputStream(),
+                            Charset.defaultCharset());
+                    System.out.println(s);
+                } catch (IOException e) {
+                    throw new RuntimeException("Unable to read the file [" + resourceLocation + "]", e);
+                }
             }
         };
     }
@@ -58,13 +61,13 @@ public class ImportMembersFunction {
         private LocalDateTime updated;
         private String selfLink;
         private String mediaLink;
-        private UnsignedLong size;
+        private long size;
 
-        public UnsignedLong getSize() {
+        public long getSize() {
             return size;
         }
 
-        public void setSize(UnsignedLong size) {
+        public void setSize(long size) {
             this.size = size;
         }
 
