@@ -1,26 +1,22 @@
 package com.cloud.cmr.cloudcmrfunctions;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.Resource;
-import org.springframework.util.StreamUtils;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Date;
 import java.util.function.Consumer;
 
 @SpringBootApplication
 public class ImportMembersFunction {
 
-    @Autowired
-    private ApplicationContext context;
-
     public static void main(String[] args) {
         SpringApplication.run(ImportMembersFunction.class, args);
+    }
+
+    private ImportMembersService importMembersService;
+
+    public ImportMembersFunction(ImportMembersService importMembersService) {
+        this.importMembersService = importMembersService;
     }
 
     @Bean
@@ -34,96 +30,7 @@ public class ImportMembersFunction {
             System.out.println("size = " + message.getSize());
             System.out.println("mediaLink = " + message.getMediaLink());
             System.out.println("selfLink = " + message.getSelfLink());
-            String resourceLocation = String.format("gs://%s/%s", message.getBucket(), message.getName());
-            Resource resource = context.getResource(resourceLocation);
-            if (resource.exists()) {
-                try {
-                    String s = StreamUtils.copyToString(
-                            resource.getInputStream(),
-                            Charset.defaultCharset());
-                    System.out.println(s);
-                } catch (IOException e) {
-                    throw new RuntimeException("Unable to read the file [" + resourceLocation + "]", e);
-                }
-            }
+            importMembersService.importMemberFromGcpStorage(message.getBucket(), message.getName());
         };
-    }
-
-    private class GscEvent {
-        // Cloud Functions uses GSON to populate this object.
-        // Field types/names are specified by Cloud Functions
-        // Changing them may break your code!
-        private String bucket;
-        private String name;
-        private String metageneration;
-        private Date timeCreated;
-        private Date updated;
-        private String selfLink;
-        private String mediaLink;
-        private long size;
-
-        public long getSize() {
-            return size;
-        }
-
-        public void setSize(long size) {
-            this.size = size;
-        }
-
-        public String getMediaLink() {
-            return mediaLink;
-        }
-
-        public void setMediaLink(String mediaLink) {
-            this.mediaLink = mediaLink;
-        }
-
-        public String getSelfLink() {
-            return selfLink;
-        }
-
-        public void setSelfLink(String selfLink) {
-            this.selfLink = selfLink;
-        }
-
-        public String getBucket() {
-            return bucket;
-        }
-
-        public void setBucket(String bucket) {
-            this.bucket = bucket;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getMetageneration() {
-            return metageneration;
-        }
-
-        public void setMetageneration(String metageneration) {
-            this.metageneration = metageneration;
-        }
-
-        public Date getTimeCreated() {
-            return timeCreated;
-        }
-
-        public void setTimeCreated(Date timeCreated) {
-            this.timeCreated = timeCreated;
-        }
-
-        public Date getUpdated() {
-            return updated;
-        }
-
-        public void setUpdated(Date updated) {
-            this.updated = updated;
-        }
     }
 }
