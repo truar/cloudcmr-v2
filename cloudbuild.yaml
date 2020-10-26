@@ -48,6 +48,7 @@ steps:
     args:
       - '-c'
       - |
+        apt-get update
         apt-get install -qq -y gettext
         export IMAGE_VERSION=${SHORT_SHA}
         export DATASTORE_NAMESPACE=${_DATASTORE_NAMESPACE}
