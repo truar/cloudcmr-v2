@@ -1,1 +1,1 @@
-Main-Class: com.cloud.cmr.cloudcmrfunctions.ImportMembersModule
+Main-Class: com.cloud.cmr.cloudcmrfunctions.ImportMembersFunction
