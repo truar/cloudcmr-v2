@@ -87,8 +87,14 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
+            <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path-assert</artifactId>
+            <version>2.2.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

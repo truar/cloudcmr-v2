@@ -1,12 +1,11 @@
 package com.cloud.cmr.exposition;
 
+import com.cloud.cmr.domain.member.Gender;
 import com.cloud.cmr.domain.member.Member;
+import com.cloud.cmr.domain.member.MemberRepository;
+import com.cloud.cmr.domain.member.PhoneNumber;
 import com.cloud.cmr.exposition.member.MemberDTO;
-import com.cloud.cmr.exposition.member.MemberListDTO;
-import com.cloud.cmr.exposition.member.MemberOverviewDTO;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -24,11 +23,13 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import static com.jayway.jsonassert.JsonAssert.with;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -41,6 +42,8 @@ public class MemberResourcesTest {
     @Autowired
     private DatastoreTemplate datastoreTemplate;
     @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
     private TestRestTemplate testRestTemplate;
     @MockBean
     private Clock clock;
@@ -50,32 +53,17 @@ public class MemberResourcesTest {
         datastoreTemplate.deleteAll(Member.class);
     }
 
-    private URI createMember(String lastName, String firstName, String email, String gender, String phone, String mobile, String birthDate) {
-        String memberJson = "{" +
-                "\"lastName\":\"" + lastName + "\", " +
-                "\"firstName\":\"" + firstName + "\"," +
-                "\"email\":\"" + email + "\"," +
-                "\"gender\":\"" + gender + "\"," +
-                "\"phone\":\"" + phone + "\"," +
-                "\"mobile\":\"" + mobile + "\"," +
-                "\"birthDate\":\"" + birthDate + "\"" +
-                "}";
+    @Test
+    void get_unknown_member_response_404() {
+        String unknownMember = "memberId";
+        String location = "/members/" + unknownMember;
 
-        ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
+        ResponseEntity<String> responseEntity = authenticatedRequest().getForEntity(location, String.class);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        URI location = responseEntity.getHeaders().getLocation();
-        assertThat(location).isNotNull();
-
-        return location;
-    }
-
-    private ResponseEntity<Void> postRequest(String endpoint, String json) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        HttpEntity<String> entity = new HttpEntity<>(json, headers);
-        return authenticatedRequest().
-                postForEntity(endpoint, entity, Void.class);
+        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(404);
+        String body = responseEntity.getBody();
+        with(body).assertThat("$.status", equalTo(404));
+        with(body).assertThat("$.message", equalTo("No member found with id: memberId"));
     }
 
     @Test
@@ -83,254 +71,123 @@ public class MemberResourcesTest {
         testRestTemplate.getForObject(MEMBERS, Void.class);
     }
 
-    @Test
-    void create_a_new_member_and_fetch_it() {
-        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-        URI location = createMember("Doe", "John", "john@doe.com",
-                "MALE", "0401020304", "0606060606", "01/01/1970");
-
-        Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                .until(() -> authenticatedRequest().getForObject(location, MemberDTO.class) != null);
-
-        MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
-        assertThat(member.lastName).isEqualTo("DOE");
-        assertThat(member.firstName).isEqualTo("John");
-        assertThat(member.email).isEqualTo("john@doe.com");
-        assertThat(member.gender).isEqualTo("MALE");
-        assertThat(member.phone).isEqualTo("0401020304");
-        assertThat(member.mobile).isEqualTo("0606060606");
-        assertThat(member.birthDate).isEqualTo(LocalDate.parse("1970-01-01"));
-        assertThat(member.createdAt).isEqualTo("2020-08-28T10:00:00Z");
-        assertThat(member.creator).isEqualTo("user");
-    }
-
-    @Test
-    void get_unknown_member_response_404() throws JsonProcessingException {
-        String memberId = "unknownMember";
-        String location = "/members/" + memberId;
-        ResponseEntity<String> forEntity = authenticatedRequest().getForEntity(location, String.class);
-        assertThat(forEntity.getStatusCodeValue()).isEqualTo(404);
-        String body = forEntity.getBody();
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(body);
-        assertThat(root.at("/status").asText()).isEqualTo("404");
-        assertThat(root.at("/message").asText()).isEqualTo("No member found with id: " + memberId);
-    }
-
     @Nested
     class MembersPagination {
 
         @Test
         void fetch_members_with_default_pagination() {
-            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
-            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            memberRepository.save(new Member("1", "LASTNAMEA", "FirstNameA", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("2", "LASTNAMEB", "FirstNameB", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
 
-            Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 2);
+            Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 2);
 
-            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(2);
-            List<MemberOverviewDTO> members = memberListDTO.members;
-            assertThat(members).hasSize(2);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEA");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
-            assertThat(members.get(0).email).isEqualTo("abc@def.com");
-            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
-            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
-            assertThat(members.get(1).email).isEqualTo("def@ghi.fr");
+            String response = authenticatedRequest().getForObject(MEMBERS, String.class);
+            with(response).assertThat("$.total", equalTo(2));
+            with(response).assertThat("$.members", hasSize(2));
+            with(response).assertThat("$.members[0].id", equalTo("1"));
+            with(response).assertThat("$.members[1].id", equalTo("2"));
         }
 
         @Test
         void fetch_members_with_pagination() {
-            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
-            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMED", "FirstNameD", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMEE", "FirstNameE", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMEF", "FirstNameF", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMEG", "FirstNameG", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            memberRepository.save(new Member("1", "LASTNAMEA", "FirstNameA", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("2", "LASTNAMEB", "FirstNameB", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("3", "LASTNAMEC", "FirstNameC", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
 
-            Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 7);
+            Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
 
-            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=1", MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(7);
-            List<MemberOverviewDTO> members = memberListDTO.members;
-            assertThat(members).hasSize(2);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEA");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
-            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
-            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
+            String response = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=1", String.class);
+            with(response).assertThat("$.total", equalTo(3));
+            with(response).assertThat("$.members", hasSize(2));
+            with(response).assertThat("$.members[0].id", equalTo("1"));
+            with(response).assertThat("$.members[1].id", equalTo("2"));
 
-            memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=2", MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(7);
-            members = memberListDTO.members;
-            assertThat(members).hasSize(2);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEC");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameC");
-            assertThat(members.get(1).lastName).isEqualTo("LASTNAMED");
-            assertThat(members.get(1).firstName).isEqualTo("FirstNameD");
-
-            memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=3", MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(7);
-            members = memberListDTO.members;
-            assertThat(members).hasSize(2);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEE");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameE");
-            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEF");
-            assertThat(members.get(1).firstName).isEqualTo("FirstNameF");
-
-            memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=4", MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(7);
-            members = memberListDTO.members;
-            assertThat(members).hasSize(1);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEG");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameG");
+            response = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=2", String.class);
+            with(response).assertThat("$.total", equalTo(3));
+            with(response).assertThat("$.members", hasSize(1));
+            with(response).assertThat("$.members[0].id", equalTo("3"));
         }
 
         @Test
         void fetch_members_with_default_ascending_by_lastname_sort() {
-            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
-            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            memberRepository.save(new Member("1", "B", "FirstNameA", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("2", "A", "FirstNameB", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("3", "C", "FirstNameC", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
 
-            Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
+            Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
 
-            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(3);
-            List<MemberOverviewDTO> members = memberListDTO.members;
-            assertThat(members).hasSize(3);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEA");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
-            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
-            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
-            assertThat(members.get(2).lastName).isEqualTo("LASTNAMEC");
-            assertThat(members.get(2).firstName).isEqualTo("FirstNameC");
+            String response = authenticatedRequest().getForObject(MEMBERS, String.class);
+            with(response).assertThat("$.total", equalTo(3));
+            with(response).assertThat("$.members", hasSize(3));
+            with(response).assertThat("$.members[0].lastName", equalTo("A"));
+            with(response).assertThat("$.members[1].lastName", equalTo("B"));
+            with(response).assertThat("$.members[2].lastName", equalTo("C"));
         }
 
         @Test
         void fetch_members_with_descending_lastname_sort() {
-            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
-            createMember("LASTNAMEB", "FirstNameB", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            memberRepository.save(new Member("1", "B", "FirstNameA", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("2", "A", "FirstNameB", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("3", "C", "FirstNameC", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
 
-            Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
+            Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
 
-            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?sortBy=lastName&sortOrder=DESC", MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(3);
-            List<MemberOverviewDTO> members = memberListDTO.members;
-            assertThat(members).hasSize(3);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEC");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameC");
-            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEB");
-            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
-            assertThat(members.get(2).lastName).isEqualTo("LASTNAMEA");
-            assertThat(members.get(2).firstName).isEqualTo("FirstNameA");
+            String response = authenticatedRequest().getForObject(MEMBERS + "?sortBy=lastName&sortOrder=DESC", String.class);
+            with(response).assertThat("$.total", equalTo(3));
+            with(response).assertThat("$.members", hasSize(3));
+            with(response).assertThat("$.members[0].lastName", equalTo("C"));
+            with(response).assertThat("$.members[1].lastName", equalTo("B"));
+            with(response).assertThat("$.members[2].lastName", equalTo("A"));
         }
 
         @Test
         void fetch_members_with_ascending_firstname_sort() {
-            when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-            createMember("LASTNAMEA", "FirstNameB", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
-            createMember("LASTNAMEB", "FirstNameA", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
-            createMember("LASTNAMEC", "FirstNameC", "def@ghi.fr", "FEMALE", "0102030405", "0707070707", "01/01/1970");
+            memberRepository.save(new Member("1", "B", "E", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("2", "A", "F", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
+            memberRepository.save(new Member("3", "C", "G", "abc@def.com",
+                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                    new PhoneNumber("0606060606"), "user", clock.instant()));
 
-            Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                    .until(() -> authenticatedRequest().getForObject(MEMBERS, MemberListDTO.class).total == 3);
+            Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
 
-            MemberListDTO memberListDTO = authenticatedRequest().getForObject(MEMBERS + "?sortBy=firstName&sortOrder=ASC", MemberListDTO.class);
-            assertThat(memberListDTO.total).isEqualTo(3);
-            List<MemberOverviewDTO> members = memberListDTO.members;
-            assertThat(members).hasSize(3);
-            assertThat(members.get(0).lastName).isEqualTo("LASTNAMEB");
-            assertThat(members.get(0).firstName).isEqualTo("FirstNameA");
-            assertThat(members.get(1).lastName).isEqualTo("LASTNAMEA");
-            assertThat(members.get(1).firstName).isEqualTo("FirstNameB");
-            assertThat(members.get(2).lastName).isEqualTo("LASTNAMEC");
-            assertThat(members.get(2).firstName).isEqualTo("FirstNameC");
+            String response = authenticatedRequest().getForObject(MEMBERS + "?sortBy=firstName&sortOrder=DESC", String.class);
+            with(response).assertThat("$.total", equalTo(3));
+            with(response).assertThat("$.members", hasSize(3));
+            with(response).assertThat("$.members[0].firstName", equalTo("G"));
+            with(response).assertThat("$.members[1].firstName", equalTo("F"));
+            with(response).assertThat("$.members[2].firstName", equalTo("E"));
         }
-    }
-
-    @Test
-    void a_user_can_change_the_address_of_a_member() {
-        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-        URI location = createMember("LASTNAME", "FirstName", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
-        String addressJson = "{" +
-                "\"line1\": \"123 RUE VOLTAIRE\"," +
-                "\"line2\": \"ALLEE DES TULIPES\"," +
-                "\"line3\": \"LIEU-DIT\"," +
-                "\"city\": \"CITY\"," +
-                "\"zipCode\": \"12345\"" +
-                "}";
-        postRequest(location + "/changeAddress", addressJson);
-
-        Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                .until(() -> {
-                    MemberDTO memberDTO = authenticatedRequest().getForObject(location, MemberDTO.class);
-                    return memberDTO != null && memberDTO.address != null;
-                });
-
-        MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
-        assertThat(member.address.line1).isEqualTo("123 RUE VOLTAIRE");
-        assertThat(member.address.line2).isEqualTo("ALLEE DES TULIPES");
-        assertThat(member.address.line3).isEqualTo("LIEU-DIT");
-        assertThat(member.address.city).isEqualTo("CITY");
-        assertThat(member.address.zipCode).isEqualTo("12345");
-    }
-
-    @Test
-    void a_user_can_change_a_member_contact_information() {
-        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-
-        URI location = createMember("LASTNAME", "FirstName", "abc@def.com", "MALE", "0101010101", "0601010101", "01/01/1980");
-        String contactInformationJson = "{" +
-                "\"lastName\":\"doe\", " +
-                "\"firstName\":\"John\"," +
-                "\"email\":\"john@doe.com\"," +
-                "\"gender\":\"MALE\"," +
-                "\"phone\":\"0401020304\"," +
-                "\"mobile\":\"0606060606\"," +
-                "\"birthDate\":\"01/01/1970\"" +
-                "}";
-        postRequest(location + "/changeContactInformation", contactInformationJson);
-
-        Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                .until(() -> authenticatedRequest().getForObject(location, MemberDTO.class) != null);
-
-        MemberDTO member = authenticatedRequest().getForObject(location, MemberDTO.class);
-        assertThat(member.lastName).isEqualTo("DOE");
-        assertThat(member.firstName).isEqualTo("John");
-        assertThat(member.email).isEqualTo("john@doe.com");
-        assertThat(member.gender).isEqualTo("MALE");
-        assertThat(member.phone).isEqualTo("0401020304");
-        assertThat(member.mobile).isEqualTo("0606060606");
-        assertThat(member.birthDate).isEqualTo(LocalDate.parse("1970-01-01"));
-        assertThat(member.createdAt).isEqualTo("2020-08-28T10:00:00Z");
-        assertThat(member.creator).isEqualTo("user");
-    }
-
-    @Test
-    @Disabled
-    void generate_1000_members() {
-        when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-        IntStream.range(0, 1000).forEach(i -> {
-            URI location = createMember("LASTNAMEA", "FirstNameA", "abc@def.com", "MALE", "0401020304", "0606060606", "01/01/1970");
-//            String addressJson = "{" +
-//                    "\"line1\": \"123 RUE VOLTAIRE\"," +
-//                    "\"line2\": \"ALLEE DES TULIPES\"," +
-//                    "\"line3\": \"LIEU-DIT\"," +
-//                    "\"city\": \"CITY\"," +
-//                    "\"zipCode\": \"12345\"" +
-//                    "}";
-//            postRequest(location + "/changeAddress", addressJson);
-        });
-
     }
 
     private TestRestTemplate authenticatedRequest() {

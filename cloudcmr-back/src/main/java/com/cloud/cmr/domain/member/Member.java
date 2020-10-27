@@ -1,6 +1,7 @@
 package com.cloud.cmr.domain.member;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.springframework.cloud.gcp.data.datastore.core.mapping.Entity;
 import org.springframework.cloud.gcp.data.datastore.core.mapping.Unindexed;
 import org.springframework.data.annotation.Id;
@@ -11,6 +12,8 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
 
 @Entity(name = "members")
 public class Member {

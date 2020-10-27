@@ -10,21 +10,18 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 public class MemberDTO {
-    public String lastName;
-    public String firstName;
-    public String email;
-    public String gender;
-    public String phone;
-    public String mobile;
-    public Instant createdAt;
-    public String creator;
-    public AddressDTO address;
+    public final String lastName;
+    public final String firstName;
+    public final String email;
+    public final String gender;
+    public final String phone;
+    public final String mobile;
+    public final Instant createdAt;
+    public final String creator;
+    public final AddressDTO address;
     @JsonSerialize(using = LocalDateSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
-    public LocalDate birthDate;
-
-    public MemberDTO() {
-    }
+    public final LocalDate birthDate;
 
     public MemberDTO(String lastName, String firstName, String email, String gender, LocalDate birthDate, String phone, String mobile, AddressDTO address, Instant createdAt, String creator) {
         this.lastName = lastName;
