@@ -1,6 +1,6 @@
 package com.cloud.cmr.exposition;
 
-import com.cloud.cmr.application.member.MemberApplicationService;
+import com.cloud.cmr.application.member.MemberManager;
 import com.cloud.cmr.domain.common.Page;
 import com.cloud.cmr.domain.member.Gender;
 import com.cloud.cmr.domain.member.Member;
@@ -40,7 +40,7 @@ public class MemberResourcesTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private MemberApplicationService service;
+    private MemberManager service;
 
     @Test
     void get_unknown_member_response_404() throws Exception {

@@ -9,12 +9,12 @@ import java.time.Clock;
 import java.time.LocalDate;
 
 @Service
-public class MemberApplicationService {
+public class MemberManager {
 
     private final MemberRepository memberRepository;
     private final Clock clock;
 
-    public MemberApplicationService(MemberRepository memberRepository, Clock clock) {
+    public MemberManager(MemberRepository memberRepository, Clock clock) {
         this.memberRepository = memberRepository;
         this.clock = clock;
     }

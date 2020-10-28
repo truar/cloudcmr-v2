@@ -11,13 +11,13 @@ import java.time.ZoneOffset;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-class MemberApplicationServiceTest {
+class MemberManagerTest {
 
     @Test
     void create_and_save_a_member() {
         MemberRepository memberRepository = mock(MemberRepository.class);
         when(memberRepository.nextId()).thenReturn("1");
-        MemberApplicationService service = new MemberApplicationService(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
+        MemberManager service = new MemberManager(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
 
         String memberId = service.create("lastName", "firstName", "abc.mail.com", "MALE",
                 LocalDate.of(1970, 1, 1), "0102030405", "0601020304", "user");
@@ -35,7 +35,7 @@ class MemberApplicationServiceTest {
                 "abc.mail.com", LocalDate.of(1970, 1, 1), Gender.MALE,
                 new PhoneNumber("0102030405"), new PhoneNumber("0601020304"), "user", Instant.parse("2020-01-01T10:00:00Z"));
         when(memberRepository.findById("1")).thenReturn(member);
-        MemberApplicationService service = new MemberApplicationService(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
+        MemberManager service = new MemberManager(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
 
         service.changeMemberAddress("1", "line1", "line2", "line3", "city", "zipCode");
 
@@ -50,7 +50,7 @@ class MemberApplicationServiceTest {
                 "abc.mail.com", LocalDate.of(1970, 1, 1), Gender.MALE,
                 new PhoneNumber("0102030405"), new PhoneNumber("0601020304"), "user", Instant.parse("2020-01-01T10:00:00Z"));
         when(memberRepository.findById("1")).thenReturn(member);
-        MemberApplicationService service = new MemberApplicationService(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
+        MemberManager service = new MemberManager(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
 
         service.changeMemberContactInformation("1", "newLastName", "newFirstName", "abc.mail.com", "MALE", LocalDate.of(1970, 1, 1), "0102030405", "0601020304");
 

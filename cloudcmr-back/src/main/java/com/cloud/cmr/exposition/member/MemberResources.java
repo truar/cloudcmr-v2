@@ -1,6 +1,6 @@
 package com.cloud.cmr.exposition.member;
 
-import com.cloud.cmr.application.member.MemberApplicationService;
+import com.cloud.cmr.application.member.MemberManager;
 import com.cloud.cmr.domain.common.Page;
 import com.cloud.cmr.domain.member.Address;
 import com.cloud.cmr.domain.member.Member;
@@ -21,15 +21,15 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequestMapping("/members")
 public class MemberResources {
 
-    private final MemberApplicationService memberApplicationService;
+    private final MemberManager memberManager;
 
-    public MemberResources(MemberApplicationService memberApplicationService) {
-        this.memberApplicationService = memberApplicationService;
+    public MemberResources(MemberManager memberManager) {
+        this.memberManager = memberManager;
     }
 
     @PostMapping("/create")
     public ResponseEntity<Void> createMember(@RequestBody CreateMemberRequest createMemberRequest, Principal principal) {
-        String memberId = memberApplicationService.create(createMemberRequest.lastName, createMemberRequest.firstName,
+        String memberId = memberManager.create(createMemberRequest.lastName, createMemberRequest.firstName,
                 createMemberRequest.email, createMemberRequest.gender, createMemberRequest.birthDate,
                 createMemberRequest.phone, createMemberRequest.mobile, principal.getName());
         return ResponseEntity.created(buildMemberLocation(memberId)).build();
@@ -45,7 +45,7 @@ public class MemberResources {
     @GetMapping("/{memberId}")
     public MemberDTO getMember(@PathVariable String memberId) {
         try {
-            Member member = memberApplicationService.memberOfId(memberId);
+            Member member = memberManager.memberOfId(memberId);
             return toMemberDTO(member);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(NOT_FOUND, "No member found with id: " + memberId, e);
@@ -55,7 +55,7 @@ public class MemberResources {
     @PostMapping("/{memberId}/changeAddress")
     public void changeMemberAddress(@PathVariable String memberId, @RequestBody ChangeAddressRequest request) {
         try {
-            memberApplicationService.changeMemberAddress(memberId, request.line1, request.line2, request.line3,
+            memberManager.changeMemberAddress(memberId, request.line1, request.line2, request.line3,
                     request.city, request.zipCode);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(NOT_FOUND, "No member found with id: " + memberId, e);
@@ -66,7 +66,7 @@ public class MemberResources {
     public void changeMemberContactInformation(@PathVariable String memberId,
                                                @RequestBody ChangeContactInformationRequest request) {
         try {
-            memberApplicationService.changeMemberContactInformation(memberId, request.lastName, request.firstName,
+            memberManager.changeMemberContactInformation(memberId, request.lastName, request.firstName,
                     request.email, request.gender, request.birthDate, request.phone, request.mobile);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(NOT_FOUND, "No member found with id: " + memberId, e);
@@ -78,7 +78,7 @@ public class MemberResources {
                                     @RequestParam(defaultValue = "20") Integer pageSize,
                                     @RequestParam(defaultValue = "ASC") String sortOrder,
                                     @RequestParam(defaultValue = "lastName") String sortBy) {
-        Page<Member> members = memberApplicationService.findMembers(page, pageSize, sortBy, sortOrder);
+        Page<Member> members = memberManager.findMembers(page, pageSize, sortBy, sortOrder);
         return toMemberListDTO(members, members.total);
     }
 
