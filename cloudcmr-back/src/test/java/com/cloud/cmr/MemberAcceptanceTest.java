@@ -1,11 +1,8 @@
 package com.cloud.cmr;
 
 import com.cloud.cmr.domain.member.Member;
-import com.cloud.cmr.exposition.member.MemberDTO;
 import com.jayway.jsonpath.JsonPath;
-import org.assertj.core.api.SoftAssertions;
 import org.awaitility.Awaitility;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +16,12 @@ import org.springframework.test.context.ActiveProfiles;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
 
 import static com.jayway.jsonassert.JsonAssert.with;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -47,19 +44,7 @@ public class MemberAcceptanceTest {
     @Test
     void create_a_new_member_and_fetch_it() {
         when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-        String memberJson = "{" +
-                "\"lastName\":\"Doe\", " +
-                "\"firstName\":\"John\"," +
-                "\"email\":\"john@doe.com\"," +
-                "\"gender\":\"MALE\"," +
-                "\"mobile\":\"0606060606\"," +
-                "\"birthDate\":\"01/01/1970\"" +
-                "}";
-
-        ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        URI location = responseEntity.getHeaders().getLocation();
-        assertThat(location).isNotNull();
+        URI location = createMember("Doe", "John", "john@doe.com", "MALE", "0606060606", "01/01/1970");
 
         Awaitility.await().atMost(5, TimeUnit.SECONDS)
                 .until(() -> authenticatedRequest().getForObject(location, String.class) != null);
@@ -80,19 +65,7 @@ public class MemberAcceptanceTest {
     @Test
     void change_the_address_after_the_member_is_created() {
         when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-        String memberJson = "{" +
-                "\"lastName\":\"Doe\", " +
-                "\"firstName\":\"John\"," +
-                "\"email\":\"john@doe.com\"," +
-                "\"gender\":\"MALE\"," +
-                "\"mobile\":\"0606060606\"," +
-                "\"birthDate\":\"01/01/1970\"" +
-                "}";
-
-        ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        URI memberLocation = responseEntity.getHeaders().getLocation();
-        assertThat(memberLocation).isNotNull();
+        URI memberLocation = createMember("Doe", "John", "john@doe.com", "MALE", "0606060606", "01/01/1970");
 
         String addressJson = "{" +
                 "\"line1\": \"123 RUE VOLTAIRE\"," +
@@ -129,19 +102,7 @@ public class MemberAcceptanceTest {
     @Test
     void change_some_contact_information_after_the_member_is_created() {
         when(clock.instant()).thenReturn(Instant.parse("2020-08-28T10:00:00Z"));
-        String memberJson = "{" +
-                "\"lastName\":\"Doe\", " +
-                "\"firstName\":\"John\"," +
-                "\"email\":\"john@doe.com\"," +
-                "\"gender\":\"MALE\"," +
-                "\"mobile\":\"0606060606\"," +
-                "\"birthDate\":\"01/01/1970\"" +
-                "}";
-
-        ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        URI memberLocation = responseEntity.getHeaders().getLocation();
-        assertThat(memberLocation).isNotNull();
+        URI memberLocation = createMember("Doe", "John", "john@doe.com", "MALE", "0606060606", "01/01/1970");
         String contactInformationJson = "{" +
                 "\"lastName\":\"doe\", " +
                 "\"firstName\":\"John\"," +
@@ -169,6 +130,44 @@ public class MemberAcceptanceTest {
         with(response).assertThat("$.birthDate", equalTo("01/01/1970"));
         with(response).assertThat("$.createdAt", equalTo("2020-08-28T10:00:00Z"));
         with(response).assertThat("$.creator", equalTo("user"));
+    }
+
+    @Test
+    void fetch_members_while_applying_filtering_and_sorting_request() {
+        createMember("B", "E", "abc@def.com", "MALE", "0401020304", "01/01/1970");
+        createMember("A", "F", "abc@def.com", "MALE", "0401020304", "01/01/1970");
+        createMember("C", "G", "abc@def.com", "MALE", "0401020304", "01/01/1970");
+
+        Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject("/members", String.class)).read("$.total") == 3);
+
+        String response = authenticatedRequest().getForObject("/members" + "?page=1&pageSize=2&sortBy=firstName&sortOrder=DESC", String.class);
+        with(response).assertThat("$.total", equalTo(3));
+        with(response).assertThat("$.members", hasSize(2));
+        with(response).assertThat("$.members[0].firstName", equalTo("G"));
+        with(response).assertThat("$.members[1].firstName", equalTo("F"));
+
+        response = authenticatedRequest().getForObject("/members" + "?page=2&pageSize=2&sortBy=firstName&sortOrder=DESC", String.class);
+        with(response).assertThat("$.total", equalTo(3));
+        with(response).assertThat("$.members", hasSize(1));
+        with(response).assertThat("$.members[0].firstName", equalTo("E"));
+    }
+
+    private URI createMember(String lastName, String firstName, String email, String gender, String mobile, String birthDate) {
+        String memberJson = "{" +
+                "\"lastName\":\"" + lastName + "\", " +
+                "\"firstName\":\"" + firstName + "\"," +
+                "\"email\":\"" + email + "\"," +
+                "\"gender\":\"" + gender + "\"," +
+                "\"mobile\":\"" + mobile + "\"," +
+                "\"birthDate\":\"" + birthDate + "\"" +
+                "}";
+
+        ResponseEntity<Void> responseEntity = postRequest("/members/create", memberJson);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        URI memberLocation = responseEntity.getHeaders().getLocation();
+        assertThat(memberLocation).isNotNull();
+        return memberLocation;
     }
 
     private ResponseEntity<Void> postRequest(String endpoint, String json) {

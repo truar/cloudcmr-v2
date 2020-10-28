@@ -1,93 +1,94 @@
 package com.cloud.cmr.exposition;
 
+import com.cloud.cmr.application.member.MemberApplicationService;
+import com.cloud.cmr.domain.common.Page;
 import com.cloud.cmr.domain.member.Gender;
 import com.cloud.cmr.domain.member.Member;
-import com.cloud.cmr.domain.member.MemberRepository;
 import com.cloud.cmr.domain.member.PhoneNumber;
-import com.jayway.jsonpath.JsonPath;
-import org.awaitility.Awaitility;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
+import com.cloud.cmr.exposition.member.MemberResources;
+import com.cloud.cmr.exposition.member.MemberResourcesAdvice;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cloud.gcp.data.datastore.core.DatastoreTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.Base64Utils;
 
-import java.time.Clock;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.NoSuchElementException;
 
-import static com.jayway.jsonassert.JsonAssert.with;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// TODO Delete Datastore template here and use a mock (SliceUnitTest would be better)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@WebMvcTest({MemberResources.class, Base64AuthenticationTokenFilter.class, MemberResourcesAdvice.class})
 @ActiveProfiles("test")
 public class MemberResourcesTest {
 
     public static final String MEMBERS = "/members";
+    public static final String BASE64_TOKEN = "Basic " + Base64Utils.encodeToString("user:password".getBytes());
 
     @Autowired
-    private DatastoreTemplate datastoreTemplate;
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private TestRestTemplate testRestTemplate;
+    private MockMvc mockMvc;
     @MockBean
-    private Clock clock;
+    private MemberApplicationService service;
 
-    @BeforeEach
-    void setUp() {
-        datastoreTemplate.deleteAll(Member.class);
+    @Test
+    void get_unknown_member_response_404() throws Exception {
+        String unknownMember = "memberId";
+        when(service.memberOfId(unknownMember)).thenThrow(new NoSuchElementException());
+
+        mockMvc.perform(get("/members/" + unknownMember)
+                .header(AUTHORIZATION, BASE64_TOKEN))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("No member found with id: memberId"));
+
+        verify(service).memberOfId("memberId");
     }
 
     @Test
-    void get_unknown_member_response_404() {
+    void error_404_when_changing_address_of_an_unknown_member() throws Exception {
         String unknownMember = "memberId";
-        String location = "/members/" + unknownMember;
-
-        ResponseEntity<String> responseEntity = authenticatedRequest().getForEntity(location, String.class);
-
-        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(404);
-        String body = responseEntity.getBody();
-        with(body).assertThat("$.status", equalTo(404));
-        with(body).assertThat("$.message", equalTo("No member found with id: memberId"));
-    }
-
-    @Test
-    void error_404_when_changing_address_of_an_unknown_member() {
-        String unknownMember = "memberId";
-        String location = "/members/" + unknownMember + "/changeAddress";
+        doThrow(new NoSuchElementException())
+                .when(service)
+                .changeMemberAddress(unknownMember, "", "", "", "", "");
 
         String request = "{" +
-                "\"line1\": \"A\"," +
-                "\"line2\": \"B\"," +
-                "\"line3\": \"C\"," +
-                "\"city\": \"D\"," +
-                "\"zipCode\": \"E\"" +
+                "\"line1\": \"\"," +
+                "\"line2\": \"\"," +
+                "\"line3\": \"\"," +
+                "\"city\": \"\"," +
+                "\"zipCode\": \"\"" +
                 "}";
-        ResponseEntity<String> responseEntity = postJsonRequest(location, request, String.class);
+        mockMvc.perform(post("/members/" + unknownMember + "/changeAddress")
+                .header(AUTHORIZATION, BASE64_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request)
+                .characterEncoding(StandardCharsets.UTF_8.name()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("No member found with id: memberId"));
 
-        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(404);
-        String body = responseEntity.getBody();
-        with(body).assertThat("$.status", equalTo(404));
-        with(body).assertThat("$.message", equalTo("No member found with id: memberId"));
+        verify(service).changeMemberAddress(unknownMember, "", "", "", "", "");
     }
 
     @Test
-    void error_404_when_changing_contact_information_of_an_unknown_member() {
+    void error_404_when_changing_contact_information_of_an_unknown_member() throws Exception {
         String unknownMember = "memberId";
-        String location = "/members/" + unknownMember + "/changeContactInformation";
+        doThrow(new NoSuchElementException())
+                .when(service)
+                .changeMemberContactInformation(unknownMember, "", "", "", "",
+                        LocalDate.of(1970, 1, 1), "", "");
 
         String request = "{" +
                 "\"lastName\":\"\", " +
@@ -98,149 +99,44 @@ public class MemberResourcesTest {
                 "\"mobile\":\"\"," +
                 "\"birthDate\":\"01/01/1970\"" +
                 "}";
-        ResponseEntity<String> responseEntity = postJsonRequest(location, request, String.class);
+        mockMvc.perform(post("/members/" + unknownMember + "/changeContactInformation")
+                .header(AUTHORIZATION, BASE64_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request)
+                .characterEncoding(StandardCharsets.UTF_8.name()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("No member found with id: memberId"));
 
-        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(404);
-        String body = responseEntity.getBody();
-        with(body).assertThat("$.status", equalTo(404));
-        with(body).assertThat("$.message", equalTo("No member found with id: memberId"));
+        verify(service).changeMemberContactInformation(unknownMember, "", "", "", "",
+                LocalDate.of(1970, 1, 1), "", "");
     }
 
     @Test
-    void only_authenticated_user_can_access_members_api() {
-        testRestTemplate.getForObject(MEMBERS, Void.class);
+    void only_authenticated_user_can_access_members_api() throws Exception {
+        mockMvc.perform(get(MEMBERS))
+                .andExpect(status().isForbidden());
     }
 
-    @Nested
-    class MembersPagination {
+    @Test
+    void fetch_members_with_default_pagination_and_sort() throws Exception {
+        when(service.findMembers(1, 20, "lastName", "ASC")).thenReturn(new Page<>(2, List.of(
+                new Member("1", "LASTNAMEA", "FirstNameA", "abc@def.com",
+                        LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                        new PhoneNumber("0606060606"), "user", Instant.now()),
+                new Member("2", "LASTNAMEB", "FirstNameB", "abc@def.com",
+                        LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                        new PhoneNumber("0606060606"), "user", Instant.now())
+        )));
 
-        @Test
-        void fetch_members_with_default_pagination() {
-            memberRepository.save(new Member("1", "LASTNAMEA", "FirstNameA", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("2", "LASTNAMEB", "FirstNameB", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
+        mockMvc.perform(get(MEMBERS)
+                .header(AUTHORIZATION, BASE64_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.members", hasSize(2)))
+                .andExpect(jsonPath("$.members[0].id").value("1"))
+                .andExpect(jsonPath("$.members[1].id").value("2"));
 
-            Awaitility.await().atMost(5, TimeUnit.SECONDS)
-                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 2);
-
-            String response = authenticatedRequest().getForObject(MEMBERS, String.class);
-            with(response).assertThat("$.total", equalTo(2));
-            with(response).assertThat("$.members", hasSize(2));
-            with(response).assertThat("$.members[0].id", equalTo("1"));
-            with(response).assertThat("$.members[1].id", equalTo("2"));
-        }
-
-        @Test
-        void fetch_members_with_pagination() {
-            memberRepository.save(new Member("1", "LASTNAMEA", "FirstNameA", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("2", "LASTNAMEB", "FirstNameB", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("3", "LASTNAMEC", "FirstNameC", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-
-            Awaitility.await().atMost(5, TimeUnit.SECONDS)
-                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
-
-            String response = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=1", String.class);
-            with(response).assertThat("$.total", equalTo(3));
-            with(response).assertThat("$.members", hasSize(2));
-            with(response).assertThat("$.members[0].id", equalTo("1"));
-            with(response).assertThat("$.members[1].id", equalTo("2"));
-
-            response = authenticatedRequest().getForObject(MEMBERS + "?pageSize=2&page=2", String.class);
-            with(response).assertThat("$.total", equalTo(3));
-            with(response).assertThat("$.members", hasSize(1));
-            with(response).assertThat("$.members[0].id", equalTo("3"));
-        }
-
-        @Test
-        void fetch_members_with_default_ascending_by_lastname_sort() {
-            memberRepository.save(new Member("1", "B", "FirstNameA", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("2", "A", "FirstNameB", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("3", "C", "FirstNameC", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-
-            Awaitility.await().atMost(5, TimeUnit.SECONDS)
-                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
-
-            String response = authenticatedRequest().getForObject(MEMBERS, String.class);
-            with(response).assertThat("$.total", equalTo(3));
-            with(response).assertThat("$.members", hasSize(3));
-            with(response).assertThat("$.members[0].lastName", equalTo("A"));
-            with(response).assertThat("$.members[1].lastName", equalTo("B"));
-            with(response).assertThat("$.members[2].lastName", equalTo("C"));
-        }
-
-        @Test
-        void fetch_members_with_descending_lastname_sort() {
-            memberRepository.save(new Member("1", "B", "FirstNameA", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("2", "A", "FirstNameB", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("3", "C", "FirstNameC", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-
-            Awaitility.await().atMost(5, TimeUnit.SECONDS)
-                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
-
-            String response = authenticatedRequest().getForObject(MEMBERS + "?sortBy=lastName&sortOrder=DESC", String.class);
-            with(response).assertThat("$.total", equalTo(3));
-            with(response).assertThat("$.members", hasSize(3));
-            with(response).assertThat("$.members[0].lastName", equalTo("C"));
-            with(response).assertThat("$.members[1].lastName", equalTo("B"));
-            with(response).assertThat("$.members[2].lastName", equalTo("A"));
-        }
-
-        @Test
-        void fetch_members_with_ascending_firstname_sort() {
-            memberRepository.save(new Member("1", "B", "E", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("2", "A", "F", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-            memberRepository.save(new Member("3", "C", "G", "abc@def.com",
-                    LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
-                    new PhoneNumber("0606060606"), "user", clock.instant()));
-
-            Awaitility.await().atMost(5, TimeUnit.SECONDS)
-                    .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject(MEMBERS, String.class)).read("$.total") == 3);
-
-            String response = authenticatedRequest().getForObject(MEMBERS + "?sortBy=firstName&sortOrder=DESC", String.class);
-            with(response).assertThat("$.total", equalTo(3));
-            with(response).assertThat("$.members", hasSize(3));
-            with(response).assertThat("$.members[0].firstName", equalTo("G"));
-            with(response).assertThat("$.members[1].firstName", equalTo("F"));
-            with(response).assertThat("$.members[2].firstName", equalTo("E"));
-        }
-
+        verify(service).findMembers(1, 20, "lastName", "ASC");
     }
-
-    private <T> ResponseEntity<T> postJsonRequest(String endpoint, String json, Class<T> responseType) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        HttpEntity<String> entity = new HttpEntity<>(json, headers);
-        return authenticatedRequest().
-                postForEntity(endpoint, entity, responseType);
-    }
-
-    private TestRestTemplate authenticatedRequest() {
-        return testRestTemplate.withBasicAuth("user", "password");
-    }
-
 }
