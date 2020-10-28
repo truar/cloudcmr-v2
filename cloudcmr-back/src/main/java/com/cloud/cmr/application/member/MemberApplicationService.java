@@ -11,8 +11,8 @@ import java.time.LocalDate;
 @Service
 public class MemberApplicationService {
 
-    private MemberRepository memberRepository;
-    private Clock clock;
+    private final MemberRepository memberRepository;
+    private final Clock clock;
 
     public MemberApplicationService(MemberRepository memberRepository, Clock clock) {
         this.memberRepository = memberRepository;
