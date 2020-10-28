@@ -1,7 +1,6 @@
 package com.cloud.cmr.domain.member;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.springframework.cloud.gcp.data.datastore.core.mapping.Entity;
 import org.springframework.cloud.gcp.data.datastore.core.mapping.Unindexed;
 import org.springframework.data.annotation.Id;
@@ -12,8 +11,6 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
 
 @Entity(name = "members")
 public class Member {
@@ -128,10 +125,6 @@ public class Member {
                 .collect(Collectors.joining("-"));
     }
 
-    public void changeAddress(Address address) {
-        this.address = address;
-    }
-
     public void changeContactInformation(String lastName, String firstName, String email, LocalDate birthDate, Gender gender, PhoneNumber phone, PhoneNumber mobile) {
         this.setLastName(lastName);
         this.setFirstName(firstName);
@@ -140,5 +133,9 @@ public class Member {
         this.gender = gender;
         this.phone = phone;
         this.mobile = mobile;
+    }
+
+    public void changeAddress(String line1, String line2, String line3, String city, String zipCode) {
+        this.address = new Address(line1, line2, line3, city, zipCode);
     }
 }

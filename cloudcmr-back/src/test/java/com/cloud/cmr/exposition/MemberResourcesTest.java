@@ -4,11 +4,9 @@ import com.cloud.cmr.domain.member.Gender;
 import com.cloud.cmr.domain.member.Member;
 import com.cloud.cmr.domain.member.MemberRepository;
 import com.cloud.cmr.domain.member.PhoneNumber;
-import com.cloud.cmr.exposition.member.MemberDTO;
 import com.jayway.jsonpath.JsonPath;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,23 +14,23 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.gcp.data.datastore.core.DatastoreTemplate;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.net.URI;
 import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 
 import static com.jayway.jsonassert.JsonAssert.with;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+// TODO Delete Datastore template here and use a mock (SliceUnitTest would be better)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 public class MemberResourcesTest {
@@ -59,6 +57,48 @@ public class MemberResourcesTest {
         String location = "/members/" + unknownMember;
 
         ResponseEntity<String> responseEntity = authenticatedRequest().getForEntity(location, String.class);
+
+        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(404);
+        String body = responseEntity.getBody();
+        with(body).assertThat("$.status", equalTo(404));
+        with(body).assertThat("$.message", equalTo("No member found with id: memberId"));
+    }
+
+    @Test
+    void error_404_when_changing_address_of_an_unknown_member() {
+        String unknownMember = "memberId";
+        String location = "/members/" + unknownMember + "/changeAddress";
+
+        String request = "{" +
+                "\"line1\": \"A\"," +
+                "\"line2\": \"B\"," +
+                "\"line3\": \"C\"," +
+                "\"city\": \"D\"," +
+                "\"zipCode\": \"E\"" +
+                "}";
+        ResponseEntity<String> responseEntity = postJsonRequest(location, request, String.class);
+
+        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(404);
+        String body = responseEntity.getBody();
+        with(body).assertThat("$.status", equalTo(404));
+        with(body).assertThat("$.message", equalTo("No member found with id: memberId"));
+    }
+
+    @Test
+    void error_404_when_changing_contact_information_of_an_unknown_member() {
+        String unknownMember = "memberId";
+        String location = "/members/" + unknownMember + "/changeContactInformation";
+
+        String request = "{" +
+                "\"lastName\":\"\", " +
+                "\"firstName\":\"\"," +
+                "\"email\":\"\"," +
+                "\"gender\":\"\"," +
+                "\"phone\":\"\"," +
+                "\"mobile\":\"\"," +
+                "\"birthDate\":\"01/01/1970\"" +
+                "}";
+        ResponseEntity<String> responseEntity = postJsonRequest(location, request, String.class);
 
         assertThat(responseEntity.getStatusCodeValue()).isEqualTo(404);
         String body = responseEntity.getBody();
@@ -188,6 +228,15 @@ public class MemberResourcesTest {
             with(response).assertThat("$.members[1].firstName", equalTo("F"));
             with(response).assertThat("$.members[2].firstName", equalTo("E"));
         }
+
+    }
+
+    private <T> ResponseEntity<T> postJsonRequest(String endpoint, String json, Class<T> responseType) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<String> entity = new HttpEntity<>(json, headers);
+        return authenticatedRequest().
+                postForEntity(endpoint, entity, responseType);
     }
 
     private TestRestTemplate authenticatedRequest() {

@@ -21,7 +21,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequestMapping("/members")
 public class MemberResources {
 
-    private MemberApplicationService memberApplicationService;
+    private final MemberApplicationService memberApplicationService;
 
     public MemberResources(MemberApplicationService memberApplicationService) {
         this.memberApplicationService = memberApplicationService;
@@ -53,23 +53,32 @@ public class MemberResources {
     }
 
     @PostMapping("/{memberId}/changeAddress")
-    public void getMember(@PathVariable String memberId, @RequestBody ChangeAddressRequest changeAddressRequest) {
-        memberApplicationService.changeAddressOfMember(memberId, changeAddressRequest.line1, changeAddressRequest.line2, changeAddressRequest.line3, changeAddressRequest.city, changeAddressRequest.zipCode);
+    public void changeMemberAddress(@PathVariable String memberId, @RequestBody ChangeAddressRequest request) {
+        try {
+            memberApplicationService.changeMemberAddress(memberId, request.line1, request.line2, request.line3,
+                    request.city, request.zipCode);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(NOT_FOUND, "No member found with id: " + memberId, e);
+        }
     }
 
     @PostMapping("/{memberId}/changeContactInformation")
-    public void getMember(@PathVariable String memberId, @RequestBody ChangeContactInformationRequest changeContactInformationRequest) {
-        memberApplicationService.changeContactInformation(memberId, changeContactInformationRequest.lastName, changeContactInformationRequest.firstName,
-                changeContactInformationRequest.email, changeContactInformationRequest.gender, changeContactInformationRequest.birthDate,
-                changeContactInformationRequest.phone, changeContactInformationRequest.mobile);
+    public void changeMemberContactInformation(@PathVariable String memberId,
+                                               @RequestBody ChangeContactInformationRequest request) {
+        try {
+            memberApplicationService.changeMemberContactInformation(memberId, request.lastName, request.firstName,
+                    request.email, request.gender, request.birthDate, request.phone, request.mobile);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(NOT_FOUND, "No member found with id: " + memberId, e);
+        }
     }
 
     @GetMapping
-    public MemberListDTO getAllMembers(@RequestParam(defaultValue = "1") Integer page,
-                                       @RequestParam(defaultValue = "20") Integer pageSize,
-                                       @RequestParam(defaultValue = "ASC") String sortOrder,
-                                       @RequestParam(defaultValue = "lastName") String sortBy) {
-        Page<Member> members = memberApplicationService.filter(page, pageSize, sortBy, sortOrder);
+    public MemberListDTO getMembers(@RequestParam(defaultValue = "1") Integer page,
+                                    @RequestParam(defaultValue = "20") Integer pageSize,
+                                    @RequestParam(defaultValue = "ASC") String sortOrder,
+                                    @RequestParam(defaultValue = "lastName") String sortBy) {
+        Page<Member> members = memberApplicationService.findMembers(page, pageSize, sortBy, sortOrder);
         return toMemberListDTO(members, members.total);
     }
 

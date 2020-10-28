@@ -9,5 +9,5 @@ public interface MemberRepository {
 
     Member findById(String memberId);
 
-    Page<Member> findWithFilter(Integer page, Integer pageSize, String sortBy, String sortOrder);
+    Page<Member> find(Integer page, Integer pageSize, String sortBy, String sortOrder);
 }

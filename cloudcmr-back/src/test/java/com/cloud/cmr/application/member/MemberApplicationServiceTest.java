@@ -37,7 +37,7 @@ class MemberApplicationServiceTest {
         when(memberRepository.findById("1")).thenReturn(member);
         MemberApplicationService service = new MemberApplicationService(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
 
-        service.changeAddressOfMember("1", "line1", "line2", "line3", "city", "zipCode");
+        service.changeMemberAddress("1", "line1", "line2", "line3", "city", "zipCode");
 
         assertThat(member.getAddress()).isEqualTo(new Address("line1", "line2", "line3", "city", "zipCode"));
         verify(memberRepository).save(any());
@@ -52,7 +52,7 @@ class MemberApplicationServiceTest {
         when(memberRepository.findById("1")).thenReturn(member);
         MemberApplicationService service = new MemberApplicationService(memberRepository, Clock.fixed(Instant.parse("2020-01-01T10:00:00Z"), ZoneOffset.UTC));
 
-        service.changeContactInformation("1", "newLastName", "newFirstName", "abc.mail.com", "MALE", LocalDate.of(1970, 1, 1), "0102030405", "0601020304");
+        service.changeMemberContactInformation("1", "newLastName", "newFirstName", "abc.mail.com", "MALE", LocalDate.of(1970, 1, 1), "0102030405", "0601020304");
 
         assertThat(member.getLastName()).isEqualTo("NEWLASTNAME");
         assertThat(member.getFirstName()).isEqualTo("NewFirstName");
