@@ -24,6 +24,7 @@ public class ImportMembersService {
     }
 
     public void importMemberFromGcpStorage(String bucket, String name) {
+        System.out.println("ImportMembersService.importMemberFromGcpStorage");
         Resource resource = loader.loadResource(bucket, name);
         try (InputStream inputStream = resource.getInputStream();
              InputStreamReader isr = new InputStreamReader(inputStream);
@@ -31,6 +32,7 @@ public class ImportMembersService {
             reader.lines()
                     .skip(1)
                     .forEach(line -> {
+                        System.out.println(line);
                         String[] data = line.split(";");
                         String licenceNumber = data[0];
                         String firstName = data[3];

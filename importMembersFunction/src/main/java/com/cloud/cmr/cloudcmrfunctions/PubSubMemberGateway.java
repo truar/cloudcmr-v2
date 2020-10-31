@@ -23,6 +23,7 @@ public class PubSubMemberGateway implements MemberGateway {
 
     @Override
     public void send(MemberDTO member) {
+        System.out.println("member = " + member);
         this.pubSubTemplate.publish(topic, member);
     }
 }
