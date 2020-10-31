@@ -1,5 +1,11 @@
 package com.cloud.cmr.cloudcmrfunctions;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
+
 public class AddressDTO {
     private final String line1;
     private final String line2;
@@ -33,5 +39,20 @@ public class AddressDTO {
 
     public String getCity() {
         return city;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, JSON_STYLE);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

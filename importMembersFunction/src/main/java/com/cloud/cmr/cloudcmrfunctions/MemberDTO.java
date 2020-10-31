@@ -3,9 +3,14 @@ package com.cloud.cmr.cloudcmrfunctions;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.LocalDate;
 import java.util.Objects;
+
+import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
 
 public class MemberDTO {
     private final String firstName;
@@ -69,16 +74,17 @@ public class MemberDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MemberDTO that = (MemberDTO) o;
-        return Objects.equals(firstName, that.firstName) &&
-                Objects.equals(lastName, that.lastName);
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, JSON_STYLE);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(firstName, lastName);
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }
