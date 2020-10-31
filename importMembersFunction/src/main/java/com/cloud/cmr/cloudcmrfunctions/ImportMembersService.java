@@ -36,7 +36,6 @@ public class ImportMembersService {
             CompletableFuture[] results = reader.lines()
                     .skip(1)
                     .map(line -> {
-                        System.out.println(line);
                         String[] data = line.split(";");
                         String licenceNumber = data[0];
                         String firstName = data[3];
@@ -68,8 +67,6 @@ public class ImportMembersService {
                     }).toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(results).join();
-            System.out.println("After posting all messages");
-
         } catch (IOException e) {
             throw new RuntimeException("Unable to read the file [" + resource.getFilename() + "]", e);
         }

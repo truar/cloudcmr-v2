@@ -21,16 +21,8 @@ public class ImportMembersFunction {
 
     @Bean
     public Consumer<GscEvent> gcsEvent() {
-        return message -> {
-            System.out.println(message.getBucket());
-            System.out.println(message.getName());
-            System.out.println(message.getUpdated());
-            System.out.println(message.getTimeCreated());
-            System.out.println(message.getMetageneration());
-            System.out.println("size = " + message.getSize());
-            System.out.println("mediaLink = " + message.getMediaLink());
-            System.out.println("selfLink = " + message.getSelfLink());
-            importMembersService.importMemberFromGcpStorage(message.getBucket(), message.getName());
-        };
+        return message -> importMembersService.importMemberFromGcpStorage(
+                message.getBucket(),
+                message.getName());
     }
 }

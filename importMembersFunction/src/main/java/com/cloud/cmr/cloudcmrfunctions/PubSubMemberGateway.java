@@ -22,14 +22,6 @@ public class PubSubMemberGateway implements MemberGateway {
 
     @Override
     public ListenableFuture<String> send(MemberDTO member) {
-        ListenableFuture<String> publish = this.pubSubTemplate.publish(topic, member);
-        publish.addCallback(result -> {
-            System.out.println("The publication is done");
-            System.out.println(result);
-        }, ex -> {
-            System.out.println("The publication has failed");
-            System.out.println(ex.getMessage());
-        });
-        return publish;
+        return this.pubSubTemplate.publish(topic, member);
     }
 }
