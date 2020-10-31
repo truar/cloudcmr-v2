@@ -7,6 +7,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.concurrent.ListenableFutureTask;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,11 @@ class ImportMembersFunctionTests {
         gscEvent.setName(FILE_NAME);
         when(gcpStorageResourceLoader.loadResource(BUCKET_NAME, FILE_NAME))
                 .thenReturn(getTestResource());
+        when(pubSubTemplate.publish(any(), any(MemberDTO.class))).thenAnswer(invocation -> {
+            ListenableFutureTask<String> task = new ListenableFutureTask<>(() -> "1");
+            task.run();
+            return task;
+        });
 
         function.gcsEvent().accept(gscEvent);
 

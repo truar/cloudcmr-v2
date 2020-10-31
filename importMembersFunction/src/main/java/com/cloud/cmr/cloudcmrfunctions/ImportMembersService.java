@@ -9,6 +9,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class ImportMembersService {
@@ -29,9 +33,9 @@ public class ImportMembersService {
         try (InputStream inputStream = resource.getInputStream();
              InputStreamReader isr = new InputStreamReader(inputStream);
              BufferedReader reader = new BufferedReader(isr)) {
-            reader.lines()
+            CompletableFuture[] results = reader.lines()
                     .skip(1)
-                    .forEach(line -> {
+                    .map(line -> {
                         System.out.println(line);
                         String[] data = line.split(";");
                         String licenceNumber = data[0];
@@ -60,8 +64,11 @@ public class ImportMembersService {
                                 mobile,
                                 address
                         );
-                        memberGateway.send(member);
-                    });
+                        return memberGateway.send(member).completable();
+                    }).toArray(CompletableFuture[]::new);
+
+            CompletableFuture.allOf(results).join();
+            System.out.println("After posting all messages");
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to read the file [" + resource.getFilename() + "]", e);

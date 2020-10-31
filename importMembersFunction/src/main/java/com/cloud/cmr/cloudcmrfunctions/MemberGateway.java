@@ -1,7 +1,9 @@
 package com.cloud.cmr.cloudcmrfunctions;
 
+import org.springframework.util.concurrent.ListenableFuture;
+
 public interface MemberGateway {
 
-    void send(MemberDTO member);
+    ListenableFuture<String> send(MemberDTO member);
 
 }
