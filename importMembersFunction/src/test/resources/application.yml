@@ -1,1 +1,1 @@
-service.members.batch.url: http://localhost:1080/api/members/batch
+pubsub.gateway.topic: importMemberTopic
