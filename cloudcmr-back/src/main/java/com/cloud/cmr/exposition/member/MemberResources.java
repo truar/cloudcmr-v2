@@ -29,7 +29,7 @@ public class MemberResources {
 
     @PostMapping("/create")
     public ResponseEntity<Void> createMember(@RequestBody CreateMemberRequest createMemberRequest, Principal principal) {
-        String memberId = memberManager.create(createMemberRequest.lastName, createMemberRequest.firstName,
+        String memberId = memberManager.createMember(createMemberRequest.lastName, createMemberRequest.firstName,
                 createMemberRequest.email, createMemberRequest.gender, createMemberRequest.birthDate,
                 createMemberRequest.phone, createMemberRequest.mobile, principal.getName());
         return ResponseEntity.created(buildMemberLocation(memberId)).build();

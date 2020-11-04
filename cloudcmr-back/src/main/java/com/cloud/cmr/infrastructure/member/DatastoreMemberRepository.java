@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
@@ -41,5 +43,15 @@ public class DatastoreMemberRepository implements MemberRepository {
         Pageable pageRequest = PageRequest.of(page - 1, pageSize, Direction.valueOf(sortOrder), sortBy);
         org.springframework.data.domain.Page<Member> pagedMembers = datastoreMemberDao.findAll(pageRequest);
         return new Page<>(pagedMembers.getTotalElements(), pagedMembers.get().collect(toList()));
+    }
+
+    @Override
+    public Optional<Member> findByLicenceNumber(String licenceNumber) {
+        return datastoreMemberDao.findByLicenceNumber(licenceNumber);
+    }
+
+    @Override
+    public Optional<Member> findByLastNameAndFirstNameAndBirthDate(String lastName, String firstName, LocalDate birthDate) {
+        return datastoreMemberDao.findByLastNameAndFirstNameAndBirthDate(lastName, firstName, birthDate);
     }
 }

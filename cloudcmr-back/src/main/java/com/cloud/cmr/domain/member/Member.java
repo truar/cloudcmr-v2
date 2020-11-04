@@ -18,22 +18,25 @@ public class Member {
     private static final Pattern PATTERN = Pattern.compile("^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
 
     @Id
-    private String id;
+    private final String id;
     private String lastName;
     private String firstName;
     private String email;
     private PhoneNumber phone;
     private PhoneNumber mobile;
+    private String licenceNumber;
     @Unindexed
     private LocalDate birthDate;
     @Unindexed
     private Gender gender;
     @Unindexed
-    private String creator;
+    private final String creator;
     @Unindexed
-    private Instant createdAt;
+    private final Instant createdAt;
     @Unindexed
     private Address address;
+    @Unindexed
+    private MemberExternalData externalData;
 
     public Member(String id, String lastName, String firstName, String email, LocalDate birthDate, Gender gender, PhoneNumber phone, PhoneNumber mobile, String creator, Instant createdAt) {
         this.id = id;
@@ -137,5 +140,18 @@ public class Member {
 
     public void changeAddress(String line1, String line2, String line3, String city, String zipCode) {
         this.address = new Address(line1, line2, line3, city, zipCode);
+    }
+
+    public MemberExternalData getExternalData() {
+        return this.externalData;
+    }
+
+    public void updateExternalData(MemberExternalData memberExternalData) {
+        this.externalData = memberExternalData;
+        this.licenceNumber = memberExternalData.getLicenceNumber();
+    }
+
+    public String getLicenceNumber() {
+        return this.licenceNumber;
     }
 }

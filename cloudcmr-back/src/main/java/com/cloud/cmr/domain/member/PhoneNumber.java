@@ -5,7 +5,7 @@ import org.springframework.cloud.gcp.data.datastore.core.mapping.Entity;
 
 @Entity
 public class PhoneNumber extends ValueObject {
-    private String number;
+    private final String number;
 
     public PhoneNumber(String number) {
         this.number = number;
