@@ -2,17 +2,14 @@ package com.cloud.cmr.cloudcmrfunctions;
 
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 public class ImportMembersService {
@@ -28,47 +25,52 @@ public class ImportMembersService {
     }
 
     public void importMemberFromGcpStorage(String bucket, String name) {
-        System.out.println("ImportMembersService.importMemberFromGcpStorage");
         Resource resource = loader.loadResource(bucket, name);
-        try (InputStream inputStream = resource.getInputStream();
-             InputStreamReader isr = new InputStreamReader(inputStream);
-             BufferedReader reader = new BufferedReader(isr)) {
-            CompletableFuture[] results = reader.lines()
+        try (var inputStream = resource.getInputStream();
+             var isr = new InputStreamReader(inputStream);
+             var reader = new BufferedReader(isr)) {
+            var completables = reader.lines()
                     .skip(1)
-                    .map(line -> {
-                        String[] data = line.split(";");
-                        String licenceNumber = data[0];
-                        String firstName = data[3];
-                        String lastName = data[2];
-                        String gender = data[4];
-                        LocalDate birthDate = LocalDate.parse(data[6], format);
-                        String email = data[15];
-                        String phone = data[13];
-                        String mobile = data[14];
-                        AddressDTO address = new AddressDTO(
-                                data[7],
-                                data[8],
-                                data[9],
-                                data[10],
-                                data[11]
-                        );
-                        var member = new MemberDTO(
-                                licenceNumber,
-                                firstName,
-                                lastName,
-                                gender,
-                                birthDate,
-                                email,
-                                phone,
-                                mobile,
-                                address
-                        );
-                        return memberGateway.send(member).completable();
-                    }).toArray(CompletableFuture[]::new);
+                    .filter(line -> !line.isBlank())
+                    .map(this::toMemberDTO)
+                    .map(memberGateway::send)
+                    .map(ListenableFuture::completable)
+                    .toArray(CompletableFuture[]::new);
 
-            CompletableFuture.allOf(results).join();
+            CompletableFuture.allOf(completables).join();
         } catch (IOException e) {
             throw new RuntimeException("Unable to read the file [" + resource.getFilename() + "]", e);
         }
+    }
+
+    private MemberDTO toMemberDTO(String line) {
+        String[] data = line.split(";");
+        String licenceNumber = data[0];
+        String firstName = data[3];
+        String lastName = data[2];
+        String gender = data[4];
+        LocalDate birthDate = LocalDate.parse(data[6], format);
+        String email = data[15];
+        String phone = data[13];
+        String mobile = data[14];
+        AddressDTO address = new AddressDTO(
+                data[7],
+                data[8],
+                data[9],
+                data[10],
+                data[11]
+        );
+        var member = new MemberDTO(
+                licenceNumber,
+                firstName,
+                lastName,
+                gender,
+                birthDate,
+                email,
+                phone,
+                mobile,
+                address
+        );
+        return member;
     }
 }
