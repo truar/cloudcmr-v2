@@ -65,7 +65,7 @@ steps:
   - id: 'build-functions'
     waitFor: ['download-cached-maven-dependencies']
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
-    dir: importMembersFunction
+    dir: import-members-function
     entrypoint: bash
     volumes:
       - name: 'maven-repository'
@@ -78,7 +78,7 @@ steps:
   - id: 'deploy-import-members-function'
     waitFor: ['build-functions']
     name: gcr.io/cloud-builders/gcloud
-    dir: importMembersFunction
+    dir: import-members-function
     entrypoint: bash
     args:
       - '-c'
