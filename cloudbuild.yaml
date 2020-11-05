@@ -52,6 +52,7 @@ steps:
         apt-get install -qq -y gettext
         export IMAGE_VERSION=${SHORT_SHA}
         export DATASTORE_NAMESPACE=${_DATASTORE_NAMESPACE}
+        export MEMBER_SUBSCRIPTION_NAME=${_MEMBER_SUBSCRIPTION_NAME}
         envsubst < cloudcmr-back-service.yaml > cloudcmr-back-service_with_env.yaml
         gcloud beta run services replace cloudcmr-back-service_with_env.yaml \
           --platform=managed --region=europe-west1

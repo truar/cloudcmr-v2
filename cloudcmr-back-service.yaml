@@ -20,6 +20,8 @@ spec:
         env:
         - name: DATASTORE_NAMESPACE
           value: ${DATASTORE_NAMESPACE}
+        - name: MEMBER_SUBSCRIPTION_NAME
+          value: ${MEMBER_SUBSCRIPTION_NAME}
         - name: JAVA_TOOL_OPTIONS
           value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
         resources:

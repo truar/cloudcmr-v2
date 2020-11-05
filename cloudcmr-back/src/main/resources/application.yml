@@ -32,3 +32,5 @@ spring:
     gcp:
       datastore:
         namespace: ${DATASTORE_NAMESPACE:localtest}
+
+subscription.name: ${MEMBER_SUBSCRIPTION_NAME:test-memberServiceSubscription}
