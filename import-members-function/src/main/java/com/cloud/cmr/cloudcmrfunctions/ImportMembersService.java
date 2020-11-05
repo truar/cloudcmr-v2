@@ -32,7 +32,7 @@ public class ImportMembersService {
             var completables = reader.lines()
                     .skip(1)
                     .filter(line -> !line.isBlank())
-                    .map(this::toMemberDTO)
+                    .map(this::toDTO)
                     .map(memberGateway::send)
                     .map(ListenableFuture::completable)
                     .toArray(CompletableFuture[]::new);
@@ -43,7 +43,7 @@ public class ImportMembersService {
         }
     }
 
-    private MemberDTO toMemberDTO(String line) {
+    private MemberAddressDTO toDTO(String line) {
         String[] data = line.split(";");
         String licenceNumber = data[0];
         String firstName = data[3];
@@ -53,14 +53,7 @@ public class ImportMembersService {
         String email = data[15];
         String phone = data[13];
         String mobile = data[14];
-        AddressDTO address = new AddressDTO(
-                data[7],
-                data[8],
-                data[9],
-                data[10],
-                data[11]
-        );
-        var member = new MemberDTO(
+        var member = new MemberAddressDTO(
                 licenceNumber,
                 firstName,
                 lastName,
@@ -69,7 +62,11 @@ public class ImportMembersService {
                 email,
                 phone,
                 mobile,
-                address
+                data[7],
+                data[8],
+                data[9],
+                data[10],
+                data[11]
         );
         return member;
     }

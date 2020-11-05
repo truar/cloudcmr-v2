@@ -47,7 +47,6 @@ class MemberManagerTest {
                 "line1", "line2", "line3", "zipCode", "city");
     }
 
-
     @Test
     void change_the_address_of_a_member() {
         MemberRepository memberRepository = mock(MemberRepository.class);

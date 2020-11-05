@@ -8,11 +8,11 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.LocalDate;
-import java.util.Objects;
 
 import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
 
-public class MemberDTO {
+public class MemberAddressDTO {
+    private final String licenceNumber;
     private final String firstName;
     private final String lastName;
     private final String gender;
@@ -22,10 +22,13 @@ public class MemberDTO {
     private final String email;
     private final String phone;
     private final String mobile;
-    private final AddressDTO address;
-    private final String licenceNumber;
+    private final String line1;
+    private final String line2;
+    private final String line3;
+    private final String zipCode;
+    private final String city;
 
-    public MemberDTO(String licenceNumber, String firstName, String lastName, String gender, LocalDate birthDate, String email, String phone, String mobile, AddressDTO address) {
+    public MemberAddressDTO(String licenceNumber, String firstName, String lastName, String gender, LocalDate birthDate, String email, String phone, String mobile, String line1, String line2, String line3, String zipCode, String city) {
         this.licenceNumber = licenceNumber;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -34,7 +37,11 @@ public class MemberDTO {
         this.email = email;
         this.phone = phone;
         this.mobile = mobile;
-        this.address = address;
+        this.line1 = line1;
+        this.line2 = line2;
+        this.line3 = line3;
+        this.zipCode = zipCode;
+        this.city = city;
     }
 
     public String getFirstName() {
@@ -65,12 +72,28 @@ public class MemberDTO {
         return mobile;
     }
 
-    public AddressDTO getAddress() {
-        return address;
-    }
-
     public String getLicenceNumber() {
         return licenceNumber;
+    }
+
+    public String getLine1() {
+        return line1;
+    }
+
+    public String getLine2() {
+        return line2;
+    }
+
+    public String getLine3() {
+        return line3;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public String getCity() {
+        return city;
     }
 
     @Override

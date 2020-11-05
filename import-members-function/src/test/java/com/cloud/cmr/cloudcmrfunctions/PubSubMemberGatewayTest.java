@@ -15,11 +15,11 @@ class PubSubMemberGatewayTest {
 
     @Test
     void publish_a_message_in_a_correct_json() throws ExecutionException, InterruptedException {
-        MemberDTO member = new MemberDTO("PC11737989", "john", "doe", "M",
+        MemberAddressDTO member = new MemberAddressDTO("PC11737989", "john", "doe", "M",
                 LocalDate.of(1967, 1, 1), "john.doe@mail.fr",
                 "0102030405", "0601020304",
-                new AddressDTO("1 chemin de la localisation", "",
-                        "Lieu-Dit", "12345", "Ma Ville"));
+                "1 chemin de la localisation", "",
+                "Lieu-Dit", "12345", "Ma Ville");
         String topic = "topic";
         PubSubTemplate pubSubTemplate = mock(PubSubTemplate.class);
         when(pubSubTemplate.publish(topic, member)).thenAnswer(invocation -> {

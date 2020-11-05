@@ -35,7 +35,7 @@ class ImportMembersFunctionTests {
         gscEvent.setName(FILE_NAME);
         when(gcpStorageResourceLoader.loadResource(BUCKET_NAME, FILE_NAME))
                 .thenReturn(getTestResource());
-        when(pubSubTemplate.publish(any(), any(MemberDTO.class))).thenAnswer(invocation -> {
+        when(pubSubTemplate.publish(any(), any(MemberAddressDTO.class))).thenAnswer(invocation -> {
             ListenableFutureTask<String> task = new ListenableFutureTask<>(() -> "1");
             task.run();
             return task;
@@ -44,7 +44,7 @@ class ImportMembersFunctionTests {
         function.gcsEvent().accept(gscEvent);
 
         verify(gcpStorageResourceLoader).loadResource(BUCKET_NAME, FILE_NAME);
-        verify(pubSubTemplate).publish(eq("importMemberTopic"), any(MemberDTO.class));
+        verify(pubSubTemplate).publish(eq("importMemberTopic"), any(MemberAddressDTO.class));
     }
 
     private Resource getTestResource() {

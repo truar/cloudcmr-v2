@@ -21,7 +21,7 @@ public class PubSubMemberGateway implements MemberGateway {
     }
 
     @Override
-    public ListenableFuture<String> send(MemberDTO member) {
+    public ListenableFuture<String> send(MemberAddressDTO member) {
         return this.pubSubTemplate.publish(topic, member);
     }
 }

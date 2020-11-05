@@ -1,10 +1,7 @@
 package com.cloud.cmr.cloudcmrfunctions;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureTask;
 
 import java.time.LocalDate;
@@ -42,12 +39,10 @@ class ImportMembersServiceTest {
         assertThat(count.get()).isEqualTo(1);
 
         verify(memberGateway).send(
-                new MemberDTO("PC11737989", "john", "doe", "M",
+                new MemberAddressDTO("PC11737989", "john", "doe", "M",
                         LocalDate.of(1967, 1, 1), "john.doe@mail.fr",
-                        "0102030405", "0601020304",
-                        new AddressDTO("1 chemin de la localisation", "",
-                                "Lieu-Dit", "12345", "Ma Ville"))
-        );
+                        "0102030405", "0601020304", "1 chemin de la localisation", "",
+                        "Lieu-Dit", "12345", "Ma Ville"));
     }
 
     @Test
@@ -72,6 +67,6 @@ class ImportMembersServiceTest {
 
         service.importMemberFromGcpStorage(BUCKET_NAME, FILE_NAME);
         assertThat(count.get()).isEqualTo(2);
-        verify(memberGateway, times(2)).send(any(MemberDTO.class));
+        verify(memberGateway, times(2)).send(any(MemberAddressDTO.class));
     }
 }
