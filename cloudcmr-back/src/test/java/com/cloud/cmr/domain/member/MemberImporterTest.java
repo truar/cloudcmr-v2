@@ -9,8 +9,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static com.cloud.cmr.domain.member.Gender.MALE;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class MemberImporterTest {
 
@@ -20,6 +19,7 @@ class MemberImporterTest {
         when(clock.instant()).thenReturn(Instant.parse("2020-11-04T12:00:00Z"));
         String licence = "licence";
         MemberRepository memberRepository = mock(MemberRepository.class);
+        when(memberRepository.nextId()).thenReturn("1");
         when(memberRepository.findByLicenceNumber(licence)).thenReturn(Optional.empty());
         MemberImporter memberImporter = new MemberImporter(memberRepository, clock);
 
@@ -63,6 +63,8 @@ class MemberImporterTest {
         memberExternalDataAssertions.assertThat(data.getZipCode()).isEqualTo("zipCode");
         memberExternalDataAssertions.assertThat(data.getCity()).isEqualTo("city");
         memberExternalDataAssertions.assertAll();
+
+        verify(memberRepository).nextId();
     }
 
     @Test

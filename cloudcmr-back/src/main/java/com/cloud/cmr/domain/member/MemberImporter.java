@@ -32,7 +32,7 @@ public class MemberImporter {
     }
 
     private Member createNewMemberFromExternalData(String licenceNumber, String lastName, String firstName, String email, LocalDate birthDate, String gender, String phone, String mobile, String line1, String line2, String line3, String zipCode, String city) {
-        Member newMember = new Member("1", lastName, firstName, email, birthDate, Gender.valueOf(gender),
+        Member newMember = new Member(memberRepository.nextId(), lastName, firstName, email, birthDate, Gender.valueOf(gender),
                 new PhoneNumber(phone), new PhoneNumber(mobile), IMPORT_MEMBER_SERVICE, clock.instant());
         newMember.changeAddress(line1, line2, line3, city, zipCode);
         newMember.updateExternalData(new MemberExternalData(
