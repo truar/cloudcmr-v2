@@ -3,8 +3,11 @@ package com.cloud.cmr.messaging.member;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.LocalDate;
+
+import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
 
 public class MemberExternalDataDTO {
     private String licenceNumber;
@@ -22,6 +25,11 @@ public class MemberExternalDataDTO {
     private String line3;
     private String zipCode;
     private String city;
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, JSON_STYLE);
+    }
 
     public void setLicenceNumber(String licenceNumber) {
         this.licenceNumber = licenceNumber;
