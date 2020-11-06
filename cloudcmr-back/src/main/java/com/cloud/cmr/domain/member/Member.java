@@ -121,6 +121,7 @@ public class Member {
         String tmpFirstName = Normalizer.normalize(firstName, Normalizer.Form.NFD)
                 .replaceAll("[^\\p{ASCII}]", "");
         tmpFirstName = Arrays.stream(tmpFirstName.split("[ ]"))
+                .map(String::toLowerCase)
                 .map(StringUtils::capitalize)
                 .collect(Collectors.joining(" "));
         this.firstName = Arrays.stream(tmpFirstName.split("[-]"))

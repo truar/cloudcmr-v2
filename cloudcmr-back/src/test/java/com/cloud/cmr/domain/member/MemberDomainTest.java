@@ -98,6 +98,12 @@ class MemberDomainTest {
         }
 
         @Test
+        void capital_firstname_are_decapitalized() {
+            Member member = createMemberWithFirstName("FIRST NAME");
+            assertThat(member.getFirstName()).isEqualTo("First Name");
+        }
+
+        @Test
         void each_word_separated_by_dashes_are_capitalized() {
             Member member = createMemberWithFirstName("first-name");
             assertThat(member.getFirstName()).isEqualTo("First-Name");
