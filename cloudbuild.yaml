@@ -130,12 +130,9 @@ steps:
   - id: 'build-front'
     waitFor: ['install-yarn']
     name: node
-    entrypoint: /bin/bash
+    entrypoint: yarn
     dir: cloudcmr-front
-    args:
-      - '-c'
-      - |
-        VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
+    args: ['build']
 
   - id: 'deploy-firebase'
     waitFor: ['build-front']
