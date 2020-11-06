@@ -55,11 +55,13 @@ public class MemberResources {
             System.out.println(msg);
             throw new ResponseStatusException(BAD_REQUEST, msg);
         }
-
+        System.out.println("Receiving message : " + body.getMessage().getMessageId());
         String input = message.getData();
+        System.out.println("Data encoded : " + input);
         String decodedData = new String(Base64.getDecoder().decode(input));
-
+        System.out.println("Display the decoded data from the message : " + decodedData);
         MemberExternalDataRequest data = new ObjectMapper().convertValue(decodedData, MemberExternalDataRequest.class);
+        System.out.println("Display the converted data : " + data);
         memberManager.importMember(new ImportMemberCommand(
                 data.getLicenceNumber(),
                 data.getLastName(),
@@ -75,6 +77,7 @@ public class MemberResources {
                 data.getZipCode(),
                 data.getCity()
         ));
+        System.out.println("End of member " + data.getLastName() + " " + data.getFirstName() + " import process");
     }
 
     @GetMapping("/{memberId}")
