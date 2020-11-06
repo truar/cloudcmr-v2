@@ -125,10 +125,10 @@ public class MemberResourcesTest {
     void fetch_members_with_default_pagination_and_sort() throws Exception {
         when(service.findMembers(1, 20, "lastName", "ASC")).thenReturn(new Page<>(2, List.of(
                 new Member("1", "LASTNAMEA", "FirstNameA", "abc@def.com",
-                        LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                        LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0450020304"),
                         new PhoneNumber("0606060606"), "user", Instant.now()),
                 new Member("2", "LASTNAMEB", "FirstNameB", "abc@def.com",
-                        LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0401020304"),
+                        LocalDate.of(1970, 1, 1), Gender.MALE, new PhoneNumber("0450020304"),
                         new PhoneNumber("0606060606"), "user", Instant.now())
         )));
 

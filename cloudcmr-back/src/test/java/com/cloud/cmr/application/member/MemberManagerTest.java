@@ -76,7 +76,7 @@ class MemberManagerTest {
         service.changeMemberContactInformation("1", "newLastName", "newFirstName", "abc.mail.com", "MALE", LocalDate.of(1970, 1, 1), "0102030405", "0601020304");
 
         assertThat(member.getLastName()).isEqualTo("NEWLASTNAME");
-        assertThat(member.getFirstName()).isEqualTo("NewFirstName");
+        assertThat(member.getFirstName()).isEqualTo("Newfirstname");
         verify(memberRepository).save(any());
     }
 }

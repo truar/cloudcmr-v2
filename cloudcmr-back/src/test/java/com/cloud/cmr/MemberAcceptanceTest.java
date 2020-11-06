@@ -55,7 +55,7 @@ public class MemberAcceptanceTest {
         with(response).assertThat("$.email", equalTo("john@doe.com"));
         with(response).assertThat("$.gender", equalTo("MALE"));
         with(response).assertThat("$.phone", equalTo(null));
-        with(response).assertThat("$.mobile", equalTo("0606060606"));
+        with(response).assertThat("$.mobile", equalTo("06 06 06 06 06"));
         with(response).assertThat("$.birthDate", equalTo("01/01/1970"));
         with(response).assertThat("$.createdAt", equalTo("2020-08-28T10:00:00Z"));
         with(response).assertThat("$.creator", equalTo("user"));
@@ -88,7 +88,7 @@ public class MemberAcceptanceTest {
         with(response).assertThat("$.email", equalTo("john@doe.com"));
         with(response).assertThat("$.gender", equalTo("MALE"));
         with(response).assertThat("$.phone", equalTo(null));
-        with(response).assertThat("$.mobile", equalTo("0606060606"));
+        with(response).assertThat("$.mobile", equalTo("06 06 06 06 06"));
         with(response).assertThat("$.birthDate", equalTo("01/01/1970"));
         with(response).assertThat("$.createdAt", equalTo("2020-08-28T10:00:00Z"));
         with(response).assertThat("$.creator", equalTo("user"));
@@ -108,7 +108,7 @@ public class MemberAcceptanceTest {
                 "\"firstName\":\"John\"," +
                 "\"email\":\"john@doe.com\"," +
                 "\"gender\":\"MALE\"," +
-                "\"phone\":\"0401020304\"," +
+                "\"phone\":\"0450020304\"," +
                 "\"mobile\":\"0606060606\"," +
                 "\"birthDate\":\"01/01/1970\"" +
                 "}";
@@ -125,8 +125,8 @@ public class MemberAcceptanceTest {
         with(response).assertThat("$.firstName", equalTo("John"));
         with(response).assertThat("$.email", equalTo("john@doe.com"));
         with(response).assertThat("$.gender", equalTo("MALE"));
-        with(response).assertThat("$.phone", equalTo("0401020304"));
-        with(response).assertThat("$.mobile", equalTo("0606060606"));
+        with(response).assertThat("$.phone", equalTo("04 50 02 03 04"));
+        with(response).assertThat("$.mobile", equalTo("06 06 06 06 06"));
         with(response).assertThat("$.birthDate", equalTo("01/01/1970"));
         with(response).assertThat("$.createdAt", equalTo("2020-08-28T10:00:00Z"));
         with(response).assertThat("$.creator", equalTo("user"));
@@ -134,9 +134,9 @@ public class MemberAcceptanceTest {
 
     @Test
     void fetch_members_while_applying_filtering_and_sorting_request() {
-        createMember("B", "E", "abc@def.com", "MALE", "0401020304", "01/01/1970");
-        createMember("A", "F", "abc@def.com", "MALE", "0401020304", "01/01/1970");
-        createMember("C", "G", "abc@def.com", "MALE", "0401020304", "01/01/1970");
+        createMember("B", "E", "abc@def.com", "MALE", "0601020304", "01/01/1970");
+        createMember("A", "F", "abc@def.com", "MALE", "0601020304", "01/01/1970");
+        createMember("C", "G", "abc@def.com", "MALE", "0601020304", "01/01/1970");
 
         Awaitility.await().atMost(5, TimeUnit.SECONDS)
                 .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject("/members", String.class)).read("$.total") == 3);

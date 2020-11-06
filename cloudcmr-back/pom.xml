@@ -20,6 +20,7 @@
         <firebase-admin.version>6.15.0</firebase-admin.version>
         <spring-cloud-gcp-dependencies.version>1.2.5.RELEASE</spring-cloud-gcp-dependencies.version>
         <awaitility.version>3.1.2</awaitility.version>
+        <libphonenumber.version>8.12.12</libphonenumber.version>
     </properties>
 
     <dependencyManagement>
@@ -46,6 +47,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.libphonenumber</groupId>
+            <artifactId>libphonenumber</artifactId>
+            <version>${libphonenumber.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.firebase</groupId>
