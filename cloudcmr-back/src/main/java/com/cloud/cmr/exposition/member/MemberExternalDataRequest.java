@@ -1,4 +1,4 @@
-package com.cloud.cmr.messaging.member;
+package com.cloud.cmr.exposition.member;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
 
-public class MemberExternalDataDTO {
+public class MemberExternalDataRequest {
     private String licenceNumber;
     private String lastName;
     private String firstName;

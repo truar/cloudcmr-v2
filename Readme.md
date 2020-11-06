@@ -806,6 +806,14 @@ The application now starts **in 4 to 5 seconds**, instead of 15 seconds or more.
 2. How will I configure the master trigger build ? 
 3. I have to define my RPO and RTO (backup data, recovery plan...)
 
+
+## TODO
+- Project security : no-allow-unauthenticated on my backend server with firebase
+- Proxy configuration with hosting and firebase
+    - might also avoid configuring the CORS request
+- CSRF also to be defined
+- PubSub : push or pull for cloud run
+
 ## Execute the tests
 ### Backend test
 ```shell script

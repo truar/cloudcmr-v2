@@ -1,9 +1,11 @@
 package com.cloud.cmr.exposition.member;
 
+import com.cloud.cmr.application.member.ImportMemberCommand;
 import com.cloud.cmr.application.member.MemberManager;
 import com.cloud.cmr.domain.common.Page;
 import com.cloud.cmr.domain.member.Address;
 import com.cloud.cmr.domain.member.Member;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -11,11 +13,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import static java.util.stream.Collectors.toList;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/members")
@@ -40,6 +43,38 @@ public class MemberResources {
                 .path("/members/{memberId}")
                 .buildAndExpand(memberId)
                 .toUri();
+    }
+
+    @PostMapping("/import")
+    @ResponseStatus(NO_CONTENT)
+    public void importMember(@RequestBody Body body) {
+        // Get PubSub message from request body.
+        Body.Message message = body.getMessage();
+        if (message == null) {
+            String msg = "Bad Request: invalid Pub/Sub message format";
+            System.out.println(msg);
+            throw new ResponseStatusException(BAD_REQUEST, msg);
+        }
+
+        String input = message.getData();
+        String decodedData = new String(Base64.getDecoder().decode(input));
+
+        MemberExternalDataRequest data = new ObjectMapper().convertValue(decodedData, MemberExternalDataRequest.class);
+        memberManager.importMember(new ImportMemberCommand(
+                data.getLicenceNumber(),
+                data.getLastName(),
+                data.getFirstName(),
+                data.getEmail(),
+                data.getBirthDate(),
+                data.getGender().equals("M") ? "MALE" : "FEMALE",
+                data.getPhone(),
+                data.getMobile(),
+                data.getLine1(),
+                data.getLine2(),
+                data.getLine3(),
+                data.getZipCode(),
+                data.getCity()
+        ));
     }
 
     @GetMapping("/{memberId}")
