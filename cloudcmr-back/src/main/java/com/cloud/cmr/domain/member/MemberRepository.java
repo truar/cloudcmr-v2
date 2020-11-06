@@ -14,5 +14,5 @@ public interface MemberRepository {
 
     Page<Member> find(Integer page, Integer pageSize, String sortBy, String sortOrder);
 
-    Optional<Member> findByLastNameIgnoreCaseAndFirstNameIgnoreCaseAndBirthDate(String lastName, String firstName, LocalDate birthDate);
+    Optional<Member> findByLastNameAndFirstNameAndBirthDate(LastName lastName, FirstName firstName, LocalDate birthDate);
 }

@@ -1,6 +1,8 @@
 package com.cloud.cmr.infrastructure.member;
 
 import com.cloud.cmr.domain.common.Page;
+import com.cloud.cmr.domain.member.FirstName;
+import com.cloud.cmr.domain.member.LastName;
 import com.cloud.cmr.domain.member.Member;
 import com.cloud.cmr.domain.member.MemberRepository;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +48,7 @@ public class DatastoreMemberRepository implements MemberRepository {
     }
 
     @Override
-    public Optional<Member> findByLastNameIgnoreCaseAndFirstNameIgnoreCaseAndBirthDate(String lastName, String firstName, LocalDate birthDate) {
-        return datastoreMemberDao.findByLastNameAndFirstNameAndBirthDate(lastName, firstName, birthDate);
+    public Optional<Member> findByLastNameAndFirstNameAndBirthDate(LastName lastName, FirstName firstName, LocalDate birthDate) {
+        return datastoreMemberDao.findByLastNameAndFirstNameAndBirthDate(lastName.getValue(), firstName.getValue(), birthDate);
     }
 }

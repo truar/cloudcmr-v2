@@ -78,7 +78,7 @@ class MemberImporterTest {
                 new PhoneNumber("0102030405"), new PhoneNumber("0601020304"), "importMemberService",
                 Instant.parse("2020-01-01T10:00:00Z"));
         mockedMember.changeAddress("line1", "line2", "line3", "city", "zipCode");
-        when(memberRepository.findByLastNameIgnoreCaseAndFirstNameIgnoreCaseAndBirthDate(lastName, firstName, birthDate)).thenReturn(Optional.of(mockedMember));
+        when(memberRepository.findByLastNameAndFirstNameAndBirthDate(new LastName(lastName), new FirstName(firstName), birthDate)).thenReturn(Optional.of(mockedMember));
 
         MemberImporter memberImporter = new MemberImporter(memberRepository, clock);
 

@@ -19,7 +19,7 @@ public class MemberImporter {
     public Member importMemberFromExternalSource(String licenceNumber, String lastName, String firstName, String email,
                                                  LocalDate birthDate, String gender, String phone, String mobile,
                                                  String line1, String line2, String line3, String zipCode, String city) {
-        Member member = memberRepository.findByLastNameIgnoreCaseAndFirstNameIgnoreCaseAndBirthDate(lastName, firstName, birthDate)
+        Member member = memberRepository.findByLastNameAndFirstNameAndBirthDate(new LastName(lastName), new FirstName(firstName), birthDate)
                 .orElseGet(() -> createNewMemberFromExternalData(licenceNumber, lastName, firstName, email, birthDate,
                         gender, phone, mobile, line1, line2, line3, zipCode, city));
 

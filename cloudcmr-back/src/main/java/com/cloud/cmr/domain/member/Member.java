@@ -18,21 +18,24 @@ public class Member {
     private static final Pattern PATTERN = Pattern.compile("^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
 
     @Id
-    private final String id;
-    private String lastName;
-    private String firstName;
-    private String email;
-    private PhoneNumber phone;
-    private PhoneNumber mobile;
-    private String licenceNumber;
-    @Unindexed
+    private String id;
+    private LastName lastName;
+    private FirstName firstName;
     private LocalDate birthDate;
+    @Unindexed
+    private String email;
+    @Unindexed
+    private PhoneNumber phone;
+    @Unindexed
+    private PhoneNumber mobile;
+    @Unindexed
+    private String licenceNumber;
     @Unindexed
     private Gender gender;
     @Unindexed
-    private final String creator;
+    private String creator;
     @Unindexed
-    private final Instant createdAt;
+    private Instant createdAt;
     @Unindexed
     private Address address;
     @Unindexed
@@ -51,16 +54,20 @@ public class Member {
         this.createdAt = createdAt;
     }
 
+    protected Member() {
+        // For Datastore
+    }
+
     public String getId() {
         return id;
     }
 
     public String getLastName() {
-        return lastName;
+        return lastName.getValue();
     }
 
     public String getFirstName() {
-        return firstName;
+        return firstName.getValue();
     }
 
     public String getEmail() {
@@ -96,37 +103,11 @@ public class Member {
     }
 
     private void setLastName(String lastName) {
-        if (StringUtils.isBlank(lastName)) {
-            throw new IllegalArgumentException("LastName must not be blank");
-        }
-
-        if (!PATTERN.matcher(lastName).matches()) {
-            throw new IllegalArgumentException("The lastname \"" + lastName + "\" contains illegal character");
-        }
-
-        this.lastName = Normalizer.normalize(lastName, Normalizer.Form.NFD)
-                .replaceAll("[^\\p{ASCII}]", "")
-                .toUpperCase();
+        this.lastName = new LastName(lastName);
     }
 
     private void setFirstName(String firstName) {
-        if (StringUtils.isBlank(firstName)) {
-            throw new IllegalArgumentException("Firstname must not be blank");
-        }
-
-        if (!PATTERN.matcher(firstName).matches()) {
-            throw new IllegalArgumentException("The firstName \"" + firstName + "\" contains illegal character");
-        }
-
-        String tmpFirstName = Normalizer.normalize(firstName, Normalizer.Form.NFD)
-                .replaceAll("[^\\p{ASCII}]", "");
-        tmpFirstName = Arrays.stream(tmpFirstName.split("[ ]"))
-                .map(String::toLowerCase)
-                .map(StringUtils::capitalize)
-                .collect(Collectors.joining(" "));
-        this.firstName = Arrays.stream(tmpFirstName.split("[-]"))
-                .map(StringUtils::capitalize)
-                .collect(Collectors.joining("-"));
+        this.firstName = new FirstName(firstName);
     }
 
     private void setEmail(String email) {

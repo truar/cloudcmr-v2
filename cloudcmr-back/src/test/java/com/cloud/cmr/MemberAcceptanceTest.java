@@ -1,6 +1,9 @@
 package com.cloud.cmr;
 
 import com.cloud.cmr.domain.member.Member;
+import com.cloud.cmr.exposition.member.Body;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
 import static com.jayway.jsonassert.JsonAssert.with;
@@ -151,6 +155,28 @@ public class MemberAcceptanceTest {
         with(response).assertThat("$.total", equalTo(3));
         with(response).assertThat("$.members", hasSize(1));
         with(response).assertThat("$.members[0].firstName", equalTo("E"));
+    }
+
+    @Test
+    void can_import_twice_the_same_member() throws JsonProcessingException {
+        String data = "{\"licenceNumber\":\"PC11737992\",\"firstName\":\"john\",\"lastName\":\"doe\",\"gender\":\"M\",\"birthDate\":\"1967-01-01\",\"email\":\"john.doe@mail.fr\",\"phone\":\"\",\"mobile\":\"\",\"line1\":\"1 chemin de la localisation\",\"line2\":\"\",\"line3\":\"Lieu-Dit\",\"zipCode\":\"12345\",\"city\":\"Ma Ville\"}";
+        String encodedData = Base64.getEncoder().encodeToString(data.getBytes());
+        Body body = new Body();
+        body.setMessage(new Body.Message("1", "", encodedData));
+        String content = new ObjectMapper().writeValueAsString(body);
+        ResponseEntity<Void> voidResponseEntity = postRequest("/members/import", content);
+        assertThat(voidResponseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        voidResponseEntity = postRequest("/members/import", content);
+        assertThat(voidResponseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> (int) JsonPath.parse(authenticatedRequest().getForObject("/members", String.class)).read("$.total") == 1);
+
+        String response = authenticatedRequest().getForObject("/members", String.class);
+        with(response).assertThat("$.total", equalTo(1));
+        with(response).assertThat("$.members", hasSize(1));
+        with(response).assertThat("$.members[0].firstName", equalTo("John"));
+        with(response).assertThat("$.members[0].lastName", equalTo("DOE"));
     }
 
     private URI createMember(String lastName, String firstName, String email, String gender, String mobile, String birthDate) {
