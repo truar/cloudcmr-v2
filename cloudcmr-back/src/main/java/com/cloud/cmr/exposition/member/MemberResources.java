@@ -72,22 +72,29 @@ public class MemberResources {
             throw new ResponseStatusException(BAD_REQUEST, "Unable to parse the data to Java object", e);
         }
         logger.debug("Display the converted data : " + data);
-        memberManager.importMember(new ImportMemberCommand(
-                data.getLicenceNumber(),
-                data.getLastName(),
-                data.getFirstName(),
-                data.getEmail(),
-                data.getBirthDate(),
-                data.getGender().equals("M") ? "MALE" : "FEMALE",
-                data.getPhone(),
-                data.getMobile(),
-                data.getLine1(),
-                data.getLine2(),
-                data.getLine3(),
-                data.getZipCode(),
-                data.getCity()
-        ));
-        logger.info("End of member " + data.getLastName() + " " + data.getFirstName() + " import process");
+        try {
+            memberManager.importMember(new ImportMemberCommand(
+                    data.getLicenceNumber(),
+                    data.getLastName(),
+                    data.getFirstName(),
+                    data.getEmail(),
+                    data.getBirthDate(),
+                    data.getGender().equals("M") ? "MALE" : "FEMALE",
+                    data.getPhone(),
+                    data.getMobile(),
+                    data.getLine1(),
+                    data.getLine2(),
+                    data.getLine3(),
+                    data.getZipCode(),
+                    data.getCity()
+            ));
+        } catch (Exception e) {
+            logger.error(e.getClass().getCanonicalName());
+            logger.error("Unable to write the member " + data.getFirstName() + " " + data.getLastName(), e);
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Unable to write the member " +
+                    data.getFirstName() + " " + data.getLastName() + " - " + e.getMessage());
+        }
+        logger.info("End of member " + data.getFirstName() + " " + data.getLastName() + " import process");
     }
 
     @GetMapping("/{memberId}")
