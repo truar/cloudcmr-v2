@@ -7,6 +7,8 @@ import com.cloud.cmr.domain.member.Address;
 import com.cloud.cmr.domain.member.Member;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,6 +26,8 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequestMapping("/members")
 public class MemberResources {
+
+    private static Logger logger = LoggerFactory.getLogger(MemberResources.class);
 
     private final MemberManager memberManager;
 
@@ -56,18 +60,18 @@ public class MemberResources {
             System.out.println(msg);
             throw new ResponseStatusException(BAD_REQUEST, msg);
         }
-        System.out.println("Receiving message : " + body.getMessage().getMessageId());
+        logger.debug("Receiving message : " + body.getMessage().getMessageId());
         String input = message.getData();
-        System.out.println("Data encoded : " + input);
+        logger.debug("Data encoded : " + input);
         String decodedData = new String(Base64.getDecoder().decode(input));
-        System.out.println("Display the decoded data from the message : " + decodedData);
+        logger.debug("Display the decoded data from the message : " + decodedData);
         MemberExternalDataRequest data = null;
         try {
             data = new ObjectMapper().readValue(decodedData, MemberExternalDataRequest.class);
         } catch (JsonProcessingException e) {
             throw new ResponseStatusException(BAD_REQUEST, "Unable to parse the data to Java object", e);
         }
-        System.out.println("Display the converted data : " + data);
+        logger.debug("Display the converted data : " + data);
         memberManager.importMember(new ImportMemberCommand(
                 data.getLicenceNumber(),
                 data.getLastName(),
@@ -83,7 +87,7 @@ public class MemberResources {
                 data.getZipCode(),
                 data.getCity()
         ));
-        System.out.println("End of member " + data.getLastName() + " " + data.getFirstName() + " import process");
+        logger.info("End of member " + data.getLastName() + " " + data.getFirstName() + " import process");
     }
 
     @GetMapping("/{memberId}")
