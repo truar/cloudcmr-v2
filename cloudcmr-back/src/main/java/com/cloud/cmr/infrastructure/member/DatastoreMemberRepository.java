@@ -46,11 +46,6 @@ public class DatastoreMemberRepository implements MemberRepository {
     }
 
     @Override
-    public Optional<Member> findByLicenceNumber(String licenceNumber) {
-        return datastoreMemberDao.findByLicenceNumber(licenceNumber);
-    }
-
-    @Override
     public Optional<Member> findByLastNameAndFirstNameAndBirthDate(String lastName, String firstName, LocalDate birthDate) {
         return datastoreMemberDao.findByLastNameAndFirstNameAndBirthDate(lastName, firstName, birthDate);
     }
