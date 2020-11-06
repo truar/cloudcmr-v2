@@ -5,6 +5,7 @@ import com.cloud.cmr.application.member.MemberManager;
 import com.cloud.cmr.domain.common.Page;
 import com.cloud.cmr.domain.member.Address;
 import com.cloud.cmr.domain.member.Member;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +61,12 @@ public class MemberResources {
         System.out.println("Data encoded : " + input);
         String decodedData = new String(Base64.getDecoder().decode(input));
         System.out.println("Display the decoded data from the message : " + decodedData);
-        MemberExternalDataRequest data = new ObjectMapper().convertValue(decodedData, MemberExternalDataRequest.class);
+        MemberExternalDataRequest data = null;
+        try {
+            data = new ObjectMapper().readValue(decodedData, MemberExternalDataRequest.class);
+        } catch (JsonProcessingException e) {
+            throw new ResponseStatusException(BAD_REQUEST, "Unable to parse the data to Java object", e);
+        }
         System.out.println("Display the converted data : " + data);
         memberManager.importMember(new ImportMemberCommand(
                 data.getLicenceNumber(),

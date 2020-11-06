@@ -5,8 +5,10 @@ import com.cloud.cmr.domain.common.Page;
 import com.cloud.cmr.domain.member.Gender;
 import com.cloud.cmr.domain.member.Member;
 import com.cloud.cmr.domain.member.PhoneNumber;
+import com.cloud.cmr.exposition.member.Body;
 import com.cloud.cmr.exposition.member.MemberResources;
 import com.cloud.cmr.exposition.member.MemberResourcesAdvice;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,6 +21,7 @@ import org.springframework.util.Base64Utils;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -138,5 +141,20 @@ public class MemberResourcesTest {
                 .andExpect(jsonPath("$.members[1].id").value("2"));
 
         verify(service).findMembers(1, 20, "lastName", "ASC");
+    }
+
+    @Test
+    void import_a_member() throws Exception {
+        String data = "{\"licenceNumber\":\"PC11737992\",\"firstName\":\"john\",\"lastName\":\"doe\",\"gender\":\"M\",\"birthDate\":\"1967-01-01\",\"email\":\"john.doe@mail.fr\",\"phone\":\"\",\"mobile\":\"\",\"line1\":\"1 chemin de la localisation\",\"line2\":\"\",\"line3\":\"Lieu-Dit\",\"zipCode\":\"12345\",\"city\":\"Ma Ville\"}";
+        String encodedData = Base64.getEncoder().encodeToString(data.getBytes());
+        Body body = new Body();
+        body.setMessage(new Body.Message("1", "", encodedData));
+        String content = new ObjectMapper().writeValueAsString(body);
+        mockMvc.perform(post("/members/import")
+                .header(AUTHORIZATION, BASE64_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content)
+                .characterEncoding("UTF-8"))
+                .andExpect(status().isNoContent());
     }
 }

@@ -14,7 +14,7 @@ public class Body {
         this.message = message;
     }
 
-    public class Message {
+    public static class Message {
 
         private String messageId;
         private String publishTime;
