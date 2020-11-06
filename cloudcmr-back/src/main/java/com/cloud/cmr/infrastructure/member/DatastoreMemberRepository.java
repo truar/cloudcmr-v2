@@ -46,7 +46,7 @@ public class DatastoreMemberRepository implements MemberRepository {
     }
 
     @Override
-    public Optional<Member> findByLastNameAndFirstNameAndBirthDate(String lastName, String firstName, LocalDate birthDate) {
+    public Optional<Member> findByLastNameIgnoreCaseAndFirstNameIgnoreCaseAndBirthDate(String lastName, String firstName, LocalDate birthDate) {
         return datastoreMemberDao.findByLastNameAndFirstNameAndBirthDate(lastName, firstName, birthDate);
     }
 }
