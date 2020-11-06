@@ -42,7 +42,7 @@ public class Member {
         this.id = id;
         setLastName(lastName);
         setFirstName(firstName);
-        this.email = email;
+        setEmail(email);
         this.birthDate = birthDate;
         this.gender = gender;
         this.phone = phone;
@@ -129,10 +129,14 @@ public class Member {
                 .collect(Collectors.joining("-"));
     }
 
+    private void setEmail(String email) {
+        this.email = email.toLowerCase();
+    }
+
     public void changeContactInformation(String lastName, String firstName, String email, LocalDate birthDate, Gender gender, PhoneNumber phone, PhoneNumber mobile) {
-        this.setLastName(lastName);
-        this.setFirstName(firstName);
-        this.email = email;
+        setLastName(lastName);
+        setFirstName(firstName);
+        setEmail(email);
         this.birthDate = birthDate;
         this.gender = gender;
         this.phone = phone;

@@ -114,4 +114,20 @@ class MemberDomainTest {
                     Gender.MALE, new PhoneNumber("0102030405"), new PhoneNumber("0102030405"), "user", Instant.EPOCH);
         }
     }
+
+    @Nested
+    @DisplayName("Test the email normalization")
+    class EmailTest {
+
+        @Test
+        void email_should_always_be_lowercased() {
+            var member = createMemberWithEmail("ABC@MAIL.COM");
+            assertThat(member.getEmail()).isEqualTo("abc@mail.com");
+        }
+
+        private Member createMemberWithEmail(String email) {
+            return new Member("id", "Lastname", "Firstname", email, LocalDate.parse("2020-01-01"),
+                    Gender.MALE, new PhoneNumber("0102030405"), new PhoneNumber("0102030405"), "user", Instant.EPOCH);
+        }
+    }
 }
