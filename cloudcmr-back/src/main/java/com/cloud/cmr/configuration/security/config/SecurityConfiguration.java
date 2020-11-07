@@ -35,7 +35,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .mvcMatchers(HttpMethod.POST, "/members/import").permitAll()
                 .mvcMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .mvcMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
