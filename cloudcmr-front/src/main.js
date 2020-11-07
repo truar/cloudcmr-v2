@@ -15,7 +15,7 @@ firebase.initializeApp({
     authDomain: process.env.firebase?.authDomain || 'truaro-test-gcp.web.app'
 })
 
-axios.defaults.headers.common['Authorization'] = userService.getToken()
+axios.defaults.headers.common['Authorization'] = 'Bearer ' + userService.getToken()
 axios.interceptors.response.use(function(response) {
     return response
 }, function(error) {

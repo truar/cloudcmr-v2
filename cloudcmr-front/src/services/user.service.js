@@ -16,7 +16,7 @@ async function login(username, password) {
     let user = firebase.auth().currentUser
     let token = await user.getIdToken()
 
-    axios.defaults.headers.common['Authorization'] = token
+    axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
 
     localStorage.setItem('user', JSON.stringify(user))
     localStorage.setItem('token', JSON.stringify(token))

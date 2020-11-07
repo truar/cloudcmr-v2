@@ -56,9 +56,9 @@ steps:
         envsubst < cloudcmr-back-service.yaml > cloudcmr-back-service_with_env.yaml
         gcloud beta run services replace cloudcmr-back-service_with_env.yaml \
           --platform=managed --region=europe-west1
-        gcloud run services add-iam-policy-binding cloudcmr-back \
-          --platform=managed --region=europe-west1 \
-          --member="allUsers" --role="roles/run.invoker"
+#        gcloud run services add-iam-policy-binding cloudcmr-back \
+#          --platform=managed --region=europe-west1 \
+#          --member="allUsers" --role="roles/run.invoker"
 
   #########################################
   #### Deploy Functions
