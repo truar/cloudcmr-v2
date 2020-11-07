@@ -40,10 +40,10 @@ steps:
     name: gcr.io/cloud-builders/docker
     args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}']
 
-  # Deploy container image to Cloud Run
-  - id: 'deploy-cloud-run'
+  - id: 'deploy-gke'
     waitFor: ['push-to-cloud-registry']
-    name: gcr.io/cloud-builders/gcloud
+    name: 'gcr.io/cloud-builders/gke-deploy'
+    dir: cloudcmr-back
     entrypoint: bash
     args:
       - '-c'
@@ -51,14 +51,14 @@ steps:
         apt-get update
         apt-get install -qq -y gettext
         export IMAGE_VERSION=${SHORT_SHA}
+        export ENVIRONMENT=${_ENVIRONMENT}
         export DATASTORE_NAMESPACE=${_DATASTORE_NAMESPACE}
         export MEMBER_SUBSCRIPTION_NAME=${_MEMBER_SUBSCRIPTION_NAME}
-        envsubst < cloudcmr-back-service.yaml > cloudcmr-back-service_with_env.yaml
-        gcloud beta run services replace cloudcmr-back-service_with_env.yaml \
-          --platform=managed --region=europe-west1
-        gcloud run services add-iam-policy-binding cloudcmr-back \
-          --platform=managed --region=europe-west1 \
-          --member="allUsers" --role="roles/run.invoker"
+        envsubst < src/main/deploy/k8s.yaml > k8s_with_env.yaml
+        gke-deploy run --filename=k8s_with_env.yaml \
+          --image=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA} \
+          --location=${_CLUSTER_ZONE} \
+          --cluster=${_CLUSTER_NAME}
 
   #########################################
   #### Deploy Functions

@@ -8,22 +8,22 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudcmr-back-staging
+  name: cloudcmr-back-${ENVIRONMENT}
   namespace: cloudcmr
   labels:
     app.kubernetes.io/name: back
-    app.kubernetes.io/instance: staging
+    app.kubernetes.io/instance: ${ENVIRONMENT}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: back
-      app.kubernetes.io/instance: staging
+      app.kubernetes.io/instance: ${ENVIRONMENT}
   template:
     metadata:
       labels:
         app.kubernetes.io/name: back
-        app.kubernetes.io/instance: staging
+        app.kubernetes.io/instance: ${ENVIRONMENT}
     spec:
       containers:
         - name: cloudcmr-back
@@ -33,9 +33,9 @@ spec:
             - containerPort: 8080
           env:
             - name: DATASTORE_NAMESPACE
-              value: stating
+              value: ${DATASTORE_NAMESPACE}
             - name: MEMBER_SUBSCRIPTION_NAME
-              value: staging-memberServiceSubscription
+              value: ${MEMBER_SUBSCRIPTION_NAME}
           livenessProbe:
             httpGet:
               path: /api/actuator/health
@@ -59,15 +59,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: cloudcmr-back-staging
+  name: cloudcmr-back-${ENVIRONMENT}
   namespace: cloudcmr
   labels:
     app.kubernetes.io/name: back
-    app.kubernetes.io/instance: staging
+    app.kubernetes.io/instance: ${ENVIRONMENT}
 spec:
+  type: LoadBalancer
   ports:
     - port: 80
       targetPort: 8080
   selector:
     app.kubernetes.io/name: back
-    app.kubernetes.io/instance: staging
+    app.kubernetes.io/instance: ${ENVIRONMENT}
