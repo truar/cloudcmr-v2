@@ -40,9 +40,9 @@ steps:
     name: gcr.io/cloud-builders/docker
     args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}']
 
-  - id: 'deploy-gke'
+  - id: 'build-k8s-file'
     waitFor: ['push-to-cloud-registry']
-    name: 'gcr.io/cloud-builders/gke-deploy'
+    name: ubuntu
     dir: cloudcmr-back
     entrypoint: bash
     args:
@@ -55,10 +55,18 @@ steps:
         export DATASTORE_NAMESPACE=${_DATASTORE_NAMESPACE}
         export MEMBER_SUBSCRIPTION_NAME=${_MEMBER_SUBSCRIPTION_NAME}
         envsubst < src/main/deploy/k8s.yaml > k8s_with_env.yaml
-        gke-deploy run --filename=k8s_with_env.yaml \
-          --image=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA} \
-          --location=${_CLUSTER_ZONE} \
-          --cluster=${_CLUSTER_NAME}
+
+  - id: 'deploy-gke'
+    waitFor: ['build-k8s-file']
+    name: 'gcr.io/cloud-builders/gke-deploy'
+    dir: cloudcmr-back
+    args:
+      - run
+      - --filename=k8s_with_env.yaml
+      - --image=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}
+      - --location=${_CLUSTER_ZONE}
+      - --cluster=${_CLUSTER_NAME}
+        gke-deploy run --filename= \
 
   #########################################
   #### Deploy Functions
