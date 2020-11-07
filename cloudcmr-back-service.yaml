@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: cloudcmr-back
   labels:
-    cloud.googleapis.com/location: europe-west1
+    cloud.googleapis.com/location: europe-west2
   annotations:
 spec:
   template:
