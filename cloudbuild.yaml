@@ -1,26 +1,30 @@
 steps:
   ## Deploy backend
-  - id: 'download-cached-gradle-dependencies'
+  - id: 'download-cached-maven-dependencies'
     name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     args:
       - '-c'
       - |
-        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/gradle-dependencies.tgz gradle-dependencies.tgz || exit 0
-        tar -zxf gradle-dependencies.tgz --directory / || exit 0
+        gsutil cp gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz maven-dependencies.tgz || exit 0
+        tar -zxf maven-dependencies.tgz --directory / || exit 0
     ## Use || exit 0 to have the error ignored if cache file does not exist
 
   - id: 'build-project'
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
     dir: cloudcmr-back
-    env:
-      - 'GRADLE_USER_HOME=/workspace/cloudcmr-back/.gradle'
-    entrypoint: 'bash'
+    entrypoint: bash
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     args:
       - '-c'
       - |
-        ./gradlew build shadowJar -x test -x bootJar --no-daemon
-        cp build/libs/*-all.jar ./app.jar
+        ./mvnw install -DskipTests
+        cp target/*-all.jar ./app.jar
 
   - id: 'dockerize-project'
     name: gcr.io/cloud-builders/docker
@@ -31,32 +35,24 @@ steps:
            '-t', 'gcr.io/$PROJECT_ID/cloudcmr-back:latest',
            '.']
 
-  - id: 'upload-cached-gradle-dependencies'
-    name: gcr.io/cloud-builders/gsutil
-    waitFor: ['build-project']
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        tar -zcf gradle-dependencies.tgz /workspace/cloudcmr-back/.gradle --exclude='daemon'
-        gsutil cp gradle-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/gradle-dependencies.tgz
-
   - id: 'push-to-cloud-registry'
     waitFor: ['dockerize-project']
-    name: 'gcr.io/cloud-builders/docker'
+    name: gcr.io/cloud-builders/docker
     args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}']
 
   # Deploy container image to Cloud Run
   - id: 'deploy-cloud-run'
     waitFor: ['push-to-cloud-registry']
-    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    name: gcr.io/cloud-builders/gcloud
     entrypoint: bash
     args:
       - '-c'
       - |
+        apt-get update
         apt-get install -qq -y gettext
         export IMAGE_VERSION=${SHORT_SHA}
         export DATASTORE_NAMESPACE=${_DATASTORE_NAMESPACE}
+        export MEMBER_SUBSCRIPTION_NAME=${_MEMBER_SUBSCRIPTION_NAME}
         envsubst < cloudcmr-back-service.yaml > cloudcmr-back-service_with_env.yaml
         gcloud beta run services replace cloudcmr-back-service_with_env.yaml \
           --platform=managed --region=europe-west1
@@ -64,7 +60,55 @@ steps:
           --platform=managed --region=europe-west1 \
           --member="allUsers" --role="roles/run.invoker"
 
-  ## Deploy frontEnd
+  #########################################
+  #### Deploy Functions
+  #########################################
+  - id: 'build-functions'
+    waitFor: ['download-cached-maven-dependencies']
+    name: adoptopenjdk/openjdk11:jdk-11.0.8_10
+    dir: import-members-function
+    entrypoint: bash
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
+    args:
+      - '-c'
+      - |
+        ./mvnw install -DskipTests
+
+  - id: 'deploy-import-members-function'
+    waitFor: ['build-functions']
+    name: gcr.io/cloud-builders/gcloud
+    dir: import-members-function
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        gcloud functions deploy import-members-function \
+          --region europe-west2 \
+          --entry-point org.springframework.cloud.function.adapter.gcp.GcfJarLauncher \
+          --runtime java11 \
+          --trigger-resource ${_UPLOAD_BUCKET_NAME} \
+          --trigger-event google.storage.object.finalize \
+          --source target/deploy \
+          --memory 512MB
+
+  - id: 'upload-cached-maven-dependencies'
+    waitFor: ['build-project', 'build-functions']
+    name: gcr.io/cloud-builders/gsutil
+    entrypoint: bash
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
+    args:
+      - '-c'
+      - |
+        tar -zcf maven-dependencies.tgz /root/.m2
+        gsutil cp maven-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/maven-dependencies.tgz
+
+  #########################################
+  #### Deploy frontEnd
+  #########################################
   - id: 'download-cached-yarn-dependencies'
     waitFor: ['-']
     name: gcr.io/cloud-builders/gsutil
@@ -82,18 +126,17 @@ steps:
     entrypoint: yarn
     dir: cloudcmr-front
     args: ['install', '--silent']
+
   - id: 'build-front'
     waitFor: ['install-yarn']
     name: node
-    entrypoint: /bin/bash
+    entrypoint: yarn
     dir: cloudcmr-front
-    args:
-      - '-c'
-      - |
-        VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
+    args: ['build']
+
   - id: 'deploy-firebase'
-    name: gcr.io/${PROJECT_ID}/firebase
     waitFor: ['build-front']
+    name: gcr.io/${PROJECT_ID}/firebase
     args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
     dir: cloudcmr-front
 
@@ -107,6 +150,7 @@ steps:
       - |
         tar -zcf yarn-dependencies.tgz ./node_modules
         gsutil cp yarn-dependencies.tgz gs://${PROJECT_ID}_cloudbuild/cache/yarn-dependencies.tgz
+
 images:
   - 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}'
   - 'gcr.io/$PROJECT_ID/cloudcmr-back:latest'

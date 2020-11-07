@@ -19,13 +19,17 @@ public class Member {
 
     @Id
     private String id;
-    private String lastName;
-    private String firstName;
+    private LastName lastName;
+    private FirstName firstName;
+    private LocalDate birthDate;
+    @Unindexed
     private String email;
+    @Unindexed
     private PhoneNumber phone;
+    @Unindexed
     private PhoneNumber mobile;
     @Unindexed
-    private LocalDate birthDate;
+    private String licenceNumber;
     @Unindexed
     private Gender gender;
     @Unindexed
@@ -34,12 +38,14 @@ public class Member {
     private Instant createdAt;
     @Unindexed
     private Address address;
+    @Unindexed
+    private MemberExternalData externalData;
 
     public Member(String id, String lastName, String firstName, String email, LocalDate birthDate, Gender gender, PhoneNumber phone, PhoneNumber mobile, String creator, Instant createdAt) {
         this.id = id;
         setLastName(lastName);
         setFirstName(firstName);
-        this.email = email;
+        setEmail(email);
         this.birthDate = birthDate;
         this.gender = gender;
         this.phone = phone;
@@ -48,16 +54,20 @@ public class Member {
         this.createdAt = createdAt;
     }
 
+    protected Member() {
+        // For Datastore
+    }
+
     public String getId() {
         return id;
     }
 
     public String getLastName() {
-        return lastName;
+        return lastName.getValue();
     }
 
     public String getFirstName() {
-        return firstName;
+        return firstName.getValue();
     }
 
     public String getEmail() {
@@ -93,49 +103,41 @@ public class Member {
     }
 
     private void setLastName(String lastName) {
-        if (StringUtils.isBlank(lastName)) {
-            throw new IllegalArgumentException("LastName must not be blank");
-        }
-
-        if (!PATTERN.matcher(lastName).matches()) {
-            throw new IllegalArgumentException("The lastname \"" + lastName + "\" contains illegal character");
-        }
-
-        this.lastName = Normalizer.normalize(lastName, Normalizer.Form.NFD)
-                .replaceAll("[^\\p{ASCII}]", "")
-                .toUpperCase();
+        this.lastName = new LastName(lastName);
     }
 
     private void setFirstName(String firstName) {
-        if (StringUtils.isBlank(firstName)) {
-            throw new IllegalArgumentException("Firstname must not be blank");
-        }
-
-        if (!PATTERN.matcher(firstName).matches()) {
-            throw new IllegalArgumentException("The firstName \"" + firstName + "\" contains illegal character");
-        }
-
-        String tmpFirstName = Normalizer.normalize(firstName, Normalizer.Form.NFD)
-                .replaceAll("[^\\p{ASCII}]", "");
-        tmpFirstName = Arrays.stream(tmpFirstName.split("[ ]"))
-                .map(StringUtils::capitalize)
-                .collect(Collectors.joining(" "));
-        this.firstName = Arrays.stream(tmpFirstName.split("[-]"))
-                .map(StringUtils::capitalize)
-                .collect(Collectors.joining("-"));
+        this.firstName = new FirstName(firstName);
     }
 
-    public void changeAddress(Address address) {
-        this.address = address;
+    private void setEmail(String email) {
+        this.email = email.toLowerCase();
     }
 
     public void changeContactInformation(String lastName, String firstName, String email, LocalDate birthDate, Gender gender, PhoneNumber phone, PhoneNumber mobile) {
-        this.setLastName(lastName);
-        this.setFirstName(firstName);
-        this.email = email;
+        setLastName(lastName);
+        setFirstName(firstName);
+        setEmail(email);
         this.birthDate = birthDate;
         this.gender = gender;
         this.phone = phone;
         this.mobile = mobile;
+    }
+
+    public void changeAddress(String line1, String line2, String line3, String city, String zipCode) {
+        this.address = new Address(line1, line2, line3, city, zipCode);
+    }
+
+    public MemberExternalData getExternalData() {
+        return this.externalData;
+    }
+
+    public void updateExternalData(MemberExternalData memberExternalData) {
+        this.externalData = memberExternalData;
+        this.licenceNumber = memberExternalData.getLicenceNumber();
+    }
+
+    public String getLicenceNumber() {
+        return this.licenceNumber;
     }
 }

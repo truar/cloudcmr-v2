@@ -18,6 +18,7 @@ import java.util.ArrayList;
 public class FirebaseAuthenticationTokenFilter extends AuthenticationTokenFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(FirebaseAuthenticationTokenFilter.class);
+    public static final String BEARER = "Bearer ";
 
     /**
      * @param authToken Firebase access token string
@@ -25,7 +26,8 @@ public class FirebaseAuthenticationTokenFilter extends AuthenticationTokenFilter
      * @throws Exception
      */
     protected Authentication getAndValidateAuthentication(String authToken) throws Exception {
-        var firebaseToken = FirebaseAuth.getInstance().verifyIdToken(authToken);
+        var token = authToken.substring(BEARER.length());
+        var firebaseToken = FirebaseAuth.getInstance().verifyIdToken(token);
         return new UsernamePasswordAuthenticationToken(firebaseToken.getEmail(), authToken, new ArrayList<>());
     }
 

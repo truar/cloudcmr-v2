@@ -1,9 +1,10 @@
 package com.cloud.cmr.domain.member;
 
+import com.cloud.cmr.domain.common.ValueObject;
 import org.springframework.cloud.gcp.data.datastore.core.mapping.Entity;
 
 @Entity
-public class Address {
+public class Address extends ValueObject {
     private String line1;
     private String line2;
     private String line3;

@@ -98,6 +98,12 @@ class MemberDomainTest {
         }
 
         @Test
+        void capital_firstname_are_decapitalized() {
+            Member member = createMemberWithFirstName("FIRST NAME");
+            assertThat(member.getFirstName()).isEqualTo("First Name");
+        }
+
+        @Test
         void each_word_separated_by_dashes_are_capitalized() {
             Member member = createMemberWithFirstName("first-name");
             assertThat(member.getFirstName()).isEqualTo("First-Name");
@@ -105,6 +111,22 @@ class MemberDomainTest {
 
         private Member createMemberWithFirstName(String firstName) {
             return new Member("id", "LASTNAME", firstName, "abc@drf.com", LocalDate.parse("2020-01-01"),
+                    Gender.MALE, new PhoneNumber("0102030405"), new PhoneNumber("0102030405"), "user", Instant.EPOCH);
+        }
+    }
+
+    @Nested
+    @DisplayName("Test the email normalization")
+    class EmailTest {
+
+        @Test
+        void email_should_always_be_lowercased() {
+            var member = createMemberWithEmail("ABC@MAIL.COM");
+            assertThat(member.getEmail()).isEqualTo("abc@mail.com");
+        }
+
+        private Member createMemberWithEmail(String email) {
+            return new Member("id", "Lastname", "Firstname", email, LocalDate.parse("2020-01-01"),
                     Gender.MALE, new PhoneNumber("0102030405"), new PhoneNumber("0102030405"), "user", Instant.EPOCH);
         }
     }
