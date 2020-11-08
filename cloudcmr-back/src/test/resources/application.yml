@@ -1,6 +1,8 @@
 firebase:
   projectId: truaro-test-gcp
 
+cors.configuration.allowOrigins: http://localhost:8088
+
 spring:
   cloud:
     gcp:

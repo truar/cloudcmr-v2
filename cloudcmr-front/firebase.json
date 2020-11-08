@@ -10,13 +10,6 @@
             ],
             "rewrites": [
                 {
-                    "source": "/api/**",
-                    "run": {
-                        "serviceId": "cloudcmr-back",
-                        "region": "europe-west1"
-                    }
-                },
-                {
                     "source": "**",
                     "destination": "/index.html"
                 }
@@ -31,13 +24,6 @@
                 "**/node_modules/**"
             ],
             "rewrites": [
-                {
-                    "source": "/api/**",
-                    "run": {
-                        "serviceId": "cloudcmr-back",
-                        "region": "europe-west1"
-                    }
-                },
                 {
                     "source": "**",
                     "destination": "/index.html"
