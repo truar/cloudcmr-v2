@@ -63,10 +63,8 @@ steps:
     args:
       - run
       - --filename=k8s_with_env.yaml
-      - --image=gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}
       - --location=${_CLUSTER_ZONE}
       - --cluster=${_CLUSTER_NAME}
-        gke-deploy run --filename= \
 
   #########################################
   #### Deploy Functions
