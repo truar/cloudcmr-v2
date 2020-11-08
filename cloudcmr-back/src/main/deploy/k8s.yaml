@@ -91,6 +91,6 @@ spec:
           namespace: cloudcmr
           port: 8080
   tls:
-    certResolver: letsencrypt
+    certResolver: one-encrypt
     domains:
       - main: "*.${BASE_URL}"
