@@ -14,7 +14,7 @@ metadata:
     app.kubernetes.io/name: back
     app.kubernetes.io/instance: ${ENVIRONMENT}
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: back
