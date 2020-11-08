@@ -65,10 +65,32 @@ metadata:
     app.kubernetes.io/name: back
     app.kubernetes.io/instance: ${ENVIRONMENT}
 spec:
-  type: LoadBalancer
   ports:
-    - port: 80
+    - port: 8080
       targetPort: 8080
   selector:
     app.kubernetes.io/name: back
     app.kubernetes.io/instance: ${ENVIRONMENT}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: cloudcmr-back-${ENVIRONMENT}
+  namespace: cloudcmr
+  labels:
+    app.kubernetes.io/name: back
+    app.kubernetes.io/instance: ${ENVIRONMENT}
+spec:
+  entryPoints:
+    - https
+  routes:
+    - match: Host(`${ENVIRONMENT}.${BASE_URL}`)
+      kind: Rule
+      services:
+        - name: cloudcmr-back-${ENVIRONMENT}
+          namespace: cloudcmr
+          port: 8080
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: "*.${BASE_URL}"
