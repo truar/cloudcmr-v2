@@ -55,6 +55,7 @@ steps:
         export DATASTORE_NAMESPACE=${_DATASTORE_NAMESPACE}
         export MEMBER_SUBSCRIPTION_NAME=${_MEMBER_SUBSCRIPTION_NAME}
         export BASE_URL=${_BASE_URL}
+        export REPLICAS_COUNT=${_REPLICAS_COUNT}
         envsubst < src/main/deploy/k8s.yaml > k8s_with_env.yaml
 
   - id: 'deploy-gke'
