@@ -174,7 +174,7 @@ steps:
         export REPLICAS_COUNT=${_REPLICAS_FRONT_COUNT}
         envsubst < deploy/k8s.yaml > k8s_with_env.yaml
 
-  - id: 'deploy-back-gke'
+  - id: 'deploy-front-gke'
     waitFor: ['build-k8s-front-file']
     name: 'gcr.io/cloud-builders/gke-deploy'
     dir: cloudcmr-front
