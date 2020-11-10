@@ -28,7 +28,7 @@ spec:
       containers:
         - name: cloudcmr-back
           imagePullPolicy: Always
-          image: gcr.io/truaro-test-gcp/cloudcmr-back:latest
+          image: gcr.io/truaro-test-gcp/cloudcmr-back:${IMAGE_VERSION}
           ports:
             - containerPort: 8080
           env:
@@ -71,26 +71,3 @@ spec:
   selector:
     app.kubernetes.io/name: back
     app.kubernetes.io/instance: ${ENVIRONMENT}
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
-  name: cloudcmr-back-${ENVIRONMENT}
-  namespace: cloudcmr
-  labels:
-    app.kubernetes.io/name: back
-    app.kubernetes.io/instance: ${ENVIRONMENT}
-spec:
-  entryPoints:
-    - https
-  routes:
-    - match: Host(`${ENVIRONMENT}.${BASE_URL}`)
-      kind: Rule
-      services:
-        - name: cloudcmr-back-${ENVIRONMENT}
-          namespace: cloudcmr
-          port: 8080
-  tls:
-    certResolver: one-encrypt
-    domains:
-      - main: "*.${BASE_URL}"

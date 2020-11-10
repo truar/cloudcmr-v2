@@ -13,7 +13,7 @@ steps:
         tar -zxf maven-dependencies.tgz --directory / || exit 0
     ## Use || exit 0 to have the error ignored if cache file does not exist
 
-  - id: 'build-project'
+  - id: 'build-back'
     name: adoptopenjdk/openjdk11:jdk-11.0.8_10
     dir: cloudcmr-back
     entrypoint: bash
@@ -26,7 +26,7 @@ steps:
         ./mvnw install -DskipTests
         cp target/*-all.jar ./app.jar
 
-  - id: 'dockerize-project'
+  - id: 'dockerize-back'
     name: gcr.io/cloud-builders/docker
     dir: cloudcmr-back
     args: ['build',
@@ -36,11 +36,10 @@ steps:
            '.']
 
   - id: 'push-to-cloud-registry'
-    waitFor: ['dockerize-project']
     name: gcr.io/cloud-builders/docker
     args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}']
 
-  - id: 'build-k8s-file'
+  - id: 'build-k8s-back-file'
     waitFor: ['push-to-cloud-registry']
     name: ubuntu
     dir: cloudcmr-back
@@ -54,12 +53,11 @@ steps:
         export ENVIRONMENT=${_ENVIRONMENT}
         export DATASTORE_NAMESPACE=${_DATASTORE_NAMESPACE}
         export MEMBER_SUBSCRIPTION_NAME=${_MEMBER_SUBSCRIPTION_NAME}
-        export BASE_URL=${_BASE_URL}
         export REPLICAS_COUNT=${_REPLICAS_COUNT}
         envsubst < src/main/deploy/k8s.yaml > k8s_with_env.yaml
 
-  - id: 'deploy-gke'
-    waitFor: ['build-k8s-file']
+  - id: 'deploy-back-gke'
+    waitFor: ['build-k8s-back-file']
     name: 'gcr.io/cloud-builders/gke-deploy'
     dir: cloudcmr-back
     args:
@@ -102,7 +100,7 @@ steps:
           --memory 512MB
 
   - id: 'upload-cached-maven-dependencies'
-    waitFor: ['build-project', 'build-functions']
+    waitFor: ['build-back', 'build-functions']
     name: gcr.io/cloud-builders/gsutil
     entrypoint: bash
     volumes:
@@ -145,11 +143,46 @@ steps:
       - |
         VUE_APP_SERVER_URL=${_SERVER_URL} yarn build
 
-  - id: 'deploy-firebase'
-    waitFor: ['build-front']
-    name: gcr.io/${PROJECT_ID}/firebase
-    args: ['deploy', '--project=${PROJECT_ID}', '--only', 'hosting:${_FIREBASE_SITE}']
+  - id: 'dockerize-front'
+    waitFor: [ 'build-front' ]
+    name: gcr.io/cloud-builders/docker
     dir: cloudcmr-front
+    args: [ 'build',
+            '-f', 'Dockerfile',
+            '-t', 'gcr.io/$PROJECT_ID/cloudcmr-front:${SHORT_SHA}',
+            '-t', 'gcr.io/$PROJECT_ID/cloudcmr-front:latest',
+            '.' ]
+
+  - id: 'push-front-to-cloud-registry'
+    waitFor: ['dockerize-front']
+    name: gcr.io/cloud-builders/docker
+    args: ['push', 'gcr.io/$PROJECT_ID/cloudcmr-front:${SHORT_SHA}']
+
+  - id: 'build-k8s-front-file'
+    waitFor: ['push-front-to-cloud-registry']
+    name: ubuntu
+    dir: cloudcmr-front
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        apt-get update
+        apt-get install -qq -y gettext
+        export IMAGE_VERSION=${SHORT_SHA}
+        export ENVIRONMENT=${_ENVIRONMENT}
+        export BASE_URL=${_BASE_URL}
+        export REPLICAS_COUNT=${_REPLICAS_FRONT_COUNT}
+        envsubst < deploy/k8s.yaml > k8s_with_env.yaml
+
+  - id: 'deploy-back-gke'
+    waitFor: ['build-k8s-front-file']
+    name: 'gcr.io/cloud-builders/gke-deploy'
+    dir: cloudcmr-front
+    args:
+      - run
+      - --filename=k8s_with_env.yaml
+      - --location=${_CLUSTER_ZONE}
+      - --cluster=${_CLUSTER_NAME}
 
   - id: 'upload-cached-yarn-dependencies'
     waitFor: ['build-front']
@@ -165,3 +198,5 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/cloudcmr-back:${SHORT_SHA}'
   - 'gcr.io/$PROJECT_ID/cloudcmr-back:latest'
+  - 'gcr.io/$PROJECT_ID/cloudcmr-front:${SHORT_SHA}'
+  - 'gcr.io/$PROJECT_ID/cloudcmr-front:latest'
