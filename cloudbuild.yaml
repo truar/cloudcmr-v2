@@ -14,7 +14,7 @@ steps:
     ## Use || exit 0 to have the error ignored if cache file does not exist
 
   - id: 'build-project'
-    name: adoptopenjdk:11-jdk-hotspot
+    name: maven:3.6-openjdk-11-slim
     dir: cloudcmr-back
     entrypoint: bash
     volumes:
@@ -23,7 +23,7 @@ steps:
     args:
       - '-c'
       - |
-        ./mvnw install -DskipTests
+        mvn install -DskipTests
         cp target/*-all.jar ./app.jar
 
   - id: 'dockerize-project'
@@ -65,7 +65,7 @@ steps:
   #########################################
   - id: 'build-functions'
     waitFor: ['download-cached-maven-dependencies']
-    name: adoptopenjdk:11-jdk-hotspot
+    name: maven:3.6-openjdk-11-slim
     dir: import-members-function
     entrypoint: bash
     volumes:
@@ -74,7 +74,7 @@ steps:
     args:
       - '-c'
       - |
-        ./mvnw install -DskipTests
+        mvn install -DskipTests
 
   - id: 'deploy-import-members-function'
     waitFor: ['build-functions']
