@@ -1,5 +1,5 @@
 # Use AdoptOpenJDK for base image.
-FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+FROM adoptopenjdk:11-jdk-hotspot
 
 # Copy the jar to the production image from the builder stage.
 COPY app.jar /app.jar
