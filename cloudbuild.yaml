@@ -14,7 +14,7 @@ steps:
     ## Use || exit 0 to have the error ignored if cache file does not exist
 
   - id: 'build-project'
-    name: adoptopenjdk/openjdk11:jdk-11.0.8_10
+    name: adoptopenjdk:11-jdk-hotspot
     dir: cloudcmr-back
     entrypoint: bash
     volumes:
@@ -65,7 +65,7 @@ steps:
   #########################################
   - id: 'build-functions'
     waitFor: ['download-cached-maven-dependencies']
-    name: adoptopenjdk/openjdk11:jdk-11.0.8_10
+    name: adoptopenjdk:11-jdk-hotspot
     dir: import-members-function
     entrypoint: bash
     volumes:
