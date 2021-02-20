@@ -15,19 +15,21 @@ RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile
 
 ## Add Debugger Agent
 RUN mkdir /opt/cdbg && \
-     wget -qO- https://storage.googleapis.com/cloud-debugger/compute-java/debian-wheezy/cdbg_java_agent_gce.tar.gz | \
-     tar xvz -C /opt/cdbg
+     wget -qO- https://storage.googleapis.com/cloud-debugger/compute-java/debian-wheezy/cdbg_java_agent_gce.tar.gz \
+     | tar xvz -C /opt/cdbg
 
 ## Add profiler agent
+RUN mkdir -p /opt/cprof && \
+    wget -q -O- https://storage.googleapis.com/cloud-profiler/java/latest/profiler_java_agent.tar.gz \
+    | tar xzv -C /opt/cprof
 
 # Disable DevTools as it is not disabled on cloud Run
 # TODO : Find a way to exclude DevTools dependencies from the ShadowJar
 # Run the web service on container startup.
-CMD ["java",
-    "-agentpath:/opt/cdbg/cdbg_java_agent.so",
-    "-Dcom.google.cdbg.breakpoints.enable_canary=true",
-    "-Xshare:on",
-     "-XX:SharedArchiveFile=/appcds.jsa",
-     "-Dspring.devtools.restart.enabled=false",
-     "-jar",
-     "/app.jar"]
+CMD java -agentpath:/opt/cdbg/cdbg_java_agent.so \
+    -Dcom.google.cdbg.breakpoints.enable_canary=true \
+    -agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=cloudcmr-back \
+    -Xshare:on \
+    -XX:SharedArchiveFile=/appcds.jsa \
+    -Dspring.devtools.restart.enabled=false \
+    -jar /app.jar
