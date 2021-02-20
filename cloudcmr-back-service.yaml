@@ -23,12 +23,7 @@ spec:
         - name: MEMBER_SUBSCRIPTION_NAME
           value: ${MEMBER_SUBSCRIPTION_NAME}
         - name: JAVA_TOOL_OPTIONS
-          value: >
-            -XX:+TieredCompilation
-            -XX:TieredStopAtLevel=1
-            -agentpath:/opt/cdbg/cdbg_java_agent.so
-            -agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=cloudcmr-back,-cprof_enable_heap_sampling=true
-            -Dcom.google.cdbg.breakpoints.enable_canary=true
+          value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -agentpath:/opt/cdbg/cdbg_java_agent.so -agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=cloudcmr-back,-cprof_enable_heap_sampling=true"
           limits:
             cpu: 1000m
             memory: 512Mi

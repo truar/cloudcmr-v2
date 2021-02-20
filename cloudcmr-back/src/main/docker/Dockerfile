@@ -31,6 +31,7 @@ RUN mkdir -p /opt/cprof && \
 # TODO : Find a way to exclude DevTools dependencies from the ShadowJar
 # Run the web service on container startup.
 CMD ["java", \
+    "-Dcom.google.cdbg.breakpoints.enable_canary=true", \
      "-Dspring.devtools.restart.enabled=false", \
     "-Xshare:on", \
      "-XX:SharedArchiveFile=/appcds.jsa", \
