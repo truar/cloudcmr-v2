@@ -32,9 +32,10 @@ RUN mkdir -p /opt/cprof && \
 # Run the web service on container startup.
 CMD ["java", \
     "-agentpath:/opt/cdbg/cdbg_java_agent.so", \
-    "-Dcom.google.cdbg.breakpoints.enable_canary=true", \
     "-agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=cloudcmr-back", \
+    "-Dcom.google.cdbg.breakpoints.enable_canary=true", \
+     "-Dspring.devtools.restart.enabled=false", \
 #    "-Xshare:on", \
 #     "-XX:SharedArchiveFile=/appcds.jsa", \
-     "-Dspring.devtools.restart.enabled=false", \
-     "-jar /app.jar"]
+     "-jar", \
+     "/app.jar"]
