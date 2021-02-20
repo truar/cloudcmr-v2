@@ -12,10 +12,10 @@ COPY app.jar /app.jar
 
 ## Do not run by disabling the spring.devtools.restart.enabled as it will result in a failed startup because the
 ## application is not executed in Compute engine resource, which causes exception when starting datastore beans
-#RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
+RUN java -XX:DumpLoadedClassList=/classes.lst -jar /app.jar --kill
 # From the captured list of classes (based on execution coverage),
 # generate the AppCDS archive file.
-#RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile=/appcds.jsa --class-path /app.jar
+RUN java -Xshare:dump -XX:SharedClassListFile=/classes.lst -XX:SharedArchiveFile=/appcds.jsa --class-path /app.jar
 
 ## Add Debugger Agent
 RUN mkdir /opt/cdbg && \
@@ -31,11 +31,8 @@ RUN mkdir -p /opt/cprof && \
 # TODO : Find a way to exclude DevTools dependencies from the ShadowJar
 # Run the web service on container startup.
 CMD ["java", \
-    "-agentpath:/opt/cdbg/cdbg_java_agent.so", \
-    "-agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=cloudcmr-back", \
-    "-Dcom.google.cdbg.breakpoints.enable_canary=true", \
      "-Dspring.devtools.restart.enabled=false", \
-#    "-Xshare:on", \
-#     "-XX:SharedArchiveFile=/appcds.jsa", \
+    "-Xshare:on", \
+     "-XX:SharedArchiveFile=/appcds.jsa", \
      "-jar", \
      "/app.jar"]
