@@ -24,7 +24,7 @@ steps:
       - '-c'
       - |
         mvn install -DskipTests
-        cp target/*-all.jar ./app.jar
+        cp target/*.jar ./app.jar
 
   - id: 'dockerize-project'
     name: gcr.io/cloud-builders/docker
